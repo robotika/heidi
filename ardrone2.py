@@ -299,7 +299,7 @@ class ARDrone2:
 #    self.confirmedConfig( "AT*CONFIG=%i,\"detect:enemy_without_shell\",\"0\"\r" )
     self.confirmedConfig( "AT*CONFIG=%i,\"video:video_channel\",\"0\"\r" ) # VERTical view
 
-  def startVideo( self ):
+  def startVideo( self, packetProcessor=None ):
     if self.videoQueue1 == None and self.videoProcess1 == None:
 #      self.confirmedConfig( "AT*CONFIG=%i,\"video:video_codec\",\"136\"\r" ) # turn on recording
       self.confirmedConfig( "AT*CONFIG=%i,\"video:video_codec\",\"130\"\r" ) # record MP4_360P_H264_720P_CODEC = 0x82,
@@ -315,7 +315,7 @@ class ARDrone2:
         if self.metaLog:
           self.metaLog.write("video_rec: " + filename + "\n")
           self.metaLog.flush()
-        self.videoProcess2 = Process(target=logVideoStream, args=((HOST, VIDEO_RECORDER_PORT), filename, self.videoQueue2, True))
+        self.videoProcess2 = Process(target=logVideoStream, args=((HOST, VIDEO_RECORDER_PORT), filename, self.videoQueue2, packetProcessor, True))
         self.videoProcess1.start()
         self.videoProcess2.start()
 

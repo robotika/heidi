@@ -4,16 +4,17 @@
   usage:
        ./h264drone.py <task|reply> [<reply log> [F]]
 """
-from ardrone2 import ARDrone2
+from ardrone2 import ARDrone2, ManualControlException
 
 import sys
 import datetime
 
-
+def dummyPacketProcessor( packet ):
+  pass
 
 def h264drone( replayLog, metaLog=None ):
   drone = ARDrone2( replayLog, metaLog=metaLog )
-  drone.startVideo()
+  drone.startVideo( dummyPacketProcessor )
   if drone.userEmergencyLanding:
     drone.reset()
   try:
