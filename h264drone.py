@@ -9,7 +9,12 @@ from ardrone2 import ARDrone2, ManualControlException
 import sys
 import datetime
 import struct
+import os
 
+# import from the h264-drone-vision repository (https://github.com/robotika/h264-drone-vision)
+sys.path.append( ".."+os.sep+"h264-drone-vision") 
+import h264
+h264.verbose = False
 
 class PacketProcessor:
   def __init__( self ):
@@ -21,6 +26,8 @@ class PacketProcessor:
         assert version == 3, version
         assert codec == 4, codec
         assert len(self.buf) == headerSize + payloadSize, str(len(self.buf), headerSize, payloadSize)       
+        mv = h264.parseFrame( self.buf[headerSize:] )
+        print len(mv),
       self.buf = ""
     self.buf += packet
 
@@ -59,9 +66,9 @@ def h264drone( replayLog, metaLog=None ):
   drone.halt()
 
 if __name__ == "__main__":
-#  pp = PacketProcessor()
-#  replayPacketLog( "packet1.log", pp.process )
-#  sys.exit(0)
+  pp = PacketProcessor()
+  replayPacketLog( "packet1.log", pp.process )
+  sys.exit(0)
   if len(sys.argv) < 2:
     print __doc__
     sys.exit(2)
