@@ -100,7 +100,7 @@ class MySockets:
         print "Navdata TIMEOUT!"
         try:
           self.navdata.sendto("\x01\x00\x00\x00", (HOST, NAVDATA_PORT)) 
-          data = self.navdata.recv(2048)
+          data = self.navdata.recv(12048)
         except socket.timeout:
           print "Navdata FAILED 2nd test TIMEOUT!"
     self.logf.write(data)

@@ -29,7 +29,7 @@ def logVideoStream( hostPortPair, filename, queueCmd, packetProcessor=None, flus
       data = s.recv(10240)
       f.write(data)
       f.flush()
-      if packetProcessor:
+      if packetProcessor and len(data) > 0:
         packetProcessor( data )
     except socket.timeout:
       print "Video filename TIMEOUT"

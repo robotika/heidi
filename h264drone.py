@@ -8,9 +8,34 @@ from ardrone2 import ARDrone2, ManualControlException
 
 import sys
 import datetime
+import struct
+
+
+class PacketProcessor:
+  def __init__( self ):
+    self.buf = ""
+  def process( self, packet ):
+    if packet.startswith("PaVE"): # PaVE (Parrot Video Encapsulation)
+      if len(self.buf) >= 12:
+        version, codec, headerSize, payloadSize = struct.unpack_from("BBHI", self.buf, 4 )
+        assert version == 3, version
+        assert codec == 4, codec
+        assert len(self.buf) == headerSize + payloadSize, str(len(self.buf), headerSize, payloadSize)       
+      self.buf = ""
+    self.buf += packet
+
 
 def dummyPacketProcessor( packet ):
-  pass
+  print len(packet)
+  packetLog = open("packet.log", "a")
+  packetLog.write( repr( packet ) + '\n' )
+  packetLog.flush()
+
+def replayPacketLog( filename, packetProcessor ):
+  for line in open(filename):
+    packet = eval(line)
+    packetProcessor( packet )
+
 
 def h264drone( replayLog, metaLog=None ):
   drone = ARDrone2( replayLog, metaLog=metaLog )
@@ -34,6 +59,9 @@ def h264drone( replayLog, metaLog=None ):
   drone.halt()
 
 if __name__ == "__main__":
+#  pp = PacketProcessor()
+#  replayPacketLog( "packet1.log", pp.process )
+#  sys.exit(0)
   if len(sys.argv) < 2:
     print __doc__
     sys.exit(2)
