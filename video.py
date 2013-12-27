@@ -17,20 +17,24 @@ def nextCmd( q ):
   except:
     return None
 
-def logVideoStream( hostPortPair, filename, queueCmd, packetProcessor=None, flushWholeVideo=False ):
+def logVideoStream( hostPortPair, filename, queueCmd, packetProcessor=None, queueResults=None, flushWholeVideo=False ):
   "wait for termination command and otherwise log data"
   s = socket.socket(socket.AF_INET, socket.SOCK_STREAM) # TCP
   s.connect( hostPortPair )
   s.settimeout( VIDEO_SOCKET_TIMEOUT )
   f = open( filename, "wb" )
   cmd = None
+  prevResult = None
   while cmd == None:
     try:
       data = s.recv(10240)
       f.write(data)
       f.flush()
       if packetProcessor and len(data) > 0:
-        packetProcessor( data )
+        tmp = packetProcessor( data )
+        if prevResult != tmp and queueResults:
+          queueResults.put( tmp )
+        prevResult = tmp
     except socket.timeout:
       print "Video filename TIMEOUT"
     cmd = nextCmd( queueCmd )

@@ -5,11 +5,15 @@
        ./h264drone.py <task|reply> [<reply log> [F]]
 """
 from ardrone2 import ARDrone2, ManualControlException
+from sourcelogger import SourceLogger
 
 import sys
 import datetime
 import struct
 import os
+import time
+from threading import Thread,Event,Lock
+import multiprocessing
 
 # import from the h264-drone-vision repository (https://github.com/robotika/h264-drone-vision)
 sys.path.append( ".."+os.sep+"h264-drone-vision") 
@@ -17,21 +21,74 @@ import h264
 h264.verbose = False
 from h264nav import quadrantMotion
 
-class PacketProcessor:
+def timeName( prefix, ext ):
+  dt = datetime.datetime.now()
+  filename = prefix + dt.strftime("%y%m%d_%H%M%S.") + ext
+  return filename
+
+
+class PacketProcessor( Thread ):
   def __init__( self ):
+    Thread.__init__( self )
+    self.setDaemon( True )
+    self.lock = Lock()
     self.buf = ""
+    self.readyForProcessing = ""
+    self._lastResult = None
+    self.shouldIRun = Event()
+    self.shouldIRun.set()
+    self.start()
+
   def process( self, packet ):
     if packet.startswith("PaVE"): # PaVE (Parrot Video Encapsulation)
       if len(self.buf) >= 12:
         version, codec, headerSize, payloadSize = struct.unpack_from("BBHI", self.buf, 4 )
         assert version == 3, version
         assert codec == 4, codec
-        assert len(self.buf) == headerSize + payloadSize, str(len(self.buf), headerSize, payloadSize)       
-        mv = h264.parseFrame( self.buf[headerSize:] )
-        print len(mv),
-        print quadrantMotion( mv )
+#        assert len(self.buf) == headerSize + payloadSize, str( (len(self.buf), headerSize, payloadSize) )
+        if len(self.buf) == headerSize + payloadSize:
+          self.lock.acquire()
+#          if len( self.readyForProcessing ) > 0:
+#            print "skipping", len(self.readyForProcessing)
+          self.readyForProcessing = self.buf[headerSize:]
+          self.lock.release()
+        else:
+          # this looks like frequent case - PaVE is probably also in the middle of the packets
+          print "BAD PACKET", (len(self.buf), headerSize, payloadSize)
       self.buf = ""
     self.buf += packet
+
+  def run(self):
+    while True: #self.shouldIRun.isSet():
+      if len( self.readyForProcessing) > 0:
+        self.lock.acquire()
+        tmp = self.readyForProcessing
+        self.readyForProcessing = ""
+        self.lock.release()
+        mv = h264.parseFrame( tmp )
+        self.lock.acquire()
+        self._lastResult = quadrantMotion( mv )
+        self.lock.release()
+        print len(mv), self._lastResult
+
+  def lastResult(self):
+    self.lock.acquire()
+    ret = self._lastResult
+    self.lock.release()
+    return ret 
+
+  def requestStop(self):
+    self.shouldIRun.clear() 
+
+g_pp = None
+
+def wrapper( packet ):
+#  print "Packet", len(packet)
+  global g_pp
+  if g_pp == None:
+    g_pp = PacketProcessor()
+  g_pp.process( packet )
+  return g_pp.lastResult()
 
 
 def dummyPacketProcessor( packet ):
@@ -46,15 +103,31 @@ def replayPacketLog( filename, packetProcessor ):
     packetProcessor( packet )
 
 
+# very very ugly :(
+queueResults = multiprocessing.Queue()
+
+def getOrNone():
+  if queueResults.empty():
+    return None
+  return queueResults.get()
+
 def h264drone( replayLog, metaLog=None ):
   drone = ARDrone2( replayLog, metaLog=metaLog )
-  drone.startVideo( dummyPacketProcessor )
+  name = timeName( "logs/src_h264_", "log" ) 
+  loggedResult = SourceLogger( getOrNone, name ).get
+  drone.startVideo( wrapper, queueResults )
   if drone.userEmergencyLanding:
     drone.reset()
   try:
     drone.wait(1.0)
     #drone.takeoff( enabledCorrections = False )
     # TODO some flying
+    for i in xrange(100):
+      drone.moveXYZA( 0.0, 0.0, 0.0, 0.0 )
+      drone.update()
+      tmp = loggedResult()
+      if tmp != None:
+        print "QUEUE", tmp
     drone.land()
     drone.wait(1.0)
   except ManualControlException, e:
@@ -68,9 +141,6 @@ def h264drone( replayLog, metaLog=None ):
   drone.halt()
 
 if __name__ == "__main__":
-  pp = PacketProcessor()
-  replayPacketLog( "packet1.log", pp.process )
-  sys.exit(0)
   if len(sys.argv) < 2:
     print __doc__
     sys.exit(2)

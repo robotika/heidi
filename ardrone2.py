@@ -191,11 +191,11 @@ class ARDrone2:
       self.filename = datetime.datetime.now().strftime("logs/navdata_%y%m%d_%H%M%S.log.gz")
       self.io = MySockets( self.filename, metaLog=metaLog )
       if self.metaLog:
-        sonarFilename = datetime.datetime.now().strftime("logs/sonar_src_%y%m%d_%H%M%S.log")
-        self.metaLog.write("sonar: "+sonarFilename+'\n' )
-        self.sonar = Sonar()
-        self.sonarUpdate = SourceLogger( self.sonar.data, sonarFilename ).get
-        self.sonar.start()
+#        sonarFilename = datetime.datetime.now().strftime("logs/sonar_src_%y%m%d_%H%M%S.log")
+#        self.metaLog.write("sonar: "+sonarFilename+'\n' )
+#        self.sonar = Sonar()
+#        self.sonarUpdate = SourceLogger( self.sonar.data, sonarFilename ).get
+#        self.sonar.start()
         consoleFilename = datetime.datetime.now().strftime("logs/console_src_%y%m%d_%H%M%S.log")
         self.metaLog.write("console: "+consoleFilename+'\n' )
         self.console = SourceLogger( myKbhit, consoleFilename ).get
@@ -299,7 +299,7 @@ class ARDrone2:
 #    self.confirmedConfig( "AT*CONFIG=%i,\"detect:enemy_without_shell\",\"0\"\r" )
     self.confirmedConfig( "AT*CONFIG=%i,\"video:video_channel\",\"0\"\r" ) # VERTical view
 
-  def startVideo( self, packetProcessor=None ):
+  def startVideo( self, packetProcessor=None, inputQueue=None ):
     if self.videoQueue1 == None and self.videoProcess1 == None:
 #      self.confirmedConfig( "AT*CONFIG=%i,\"video:video_codec\",\"136\"\r" ) # turn on recording
       self.confirmedConfig( "AT*CONFIG=%i,\"video:video_codec\",\"130\"\r" ) # record MP4_360P_H264_720P_CODEC = 0x82,
@@ -315,7 +315,8 @@ class ARDrone2:
         if self.metaLog:
           self.metaLog.write("video_rec: " + filename + "\n")
           self.metaLog.flush()
-        self.videoProcess2 = Process(target=logVideoStream, args=((HOST, VIDEO_RECORDER_PORT), filename, self.videoQueue2, packetProcessor, True))
+        self.videoProcess2 = Process(target=logVideoStream, args=((HOST, VIDEO_RECORDER_PORT), filename, self.videoQueue2, \
+            packetProcessor, inputQueue, True))
         self.videoProcess1.start()
         self.videoProcess2.start()
 
