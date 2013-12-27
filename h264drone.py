@@ -15,6 +15,8 @@ import time
 from threading import Thread,Event,Lock
 import multiprocessing
 
+import viewlog
+
 # import from the h264-drone-vision repository (https://github.com/robotika/h264-drone-vision)
 sys.path.append( ".."+os.sep+"h264-drone-vision") 
 import h264
@@ -111,11 +113,21 @@ def getOrNone():
     return None
   return queueResults.get()
 
-def h264drone( replayLog, metaLog=None ):
+def h264drone( replayLog, metaLog ):
   drone = ARDrone2( replayLog, metaLog=metaLog )
-  name = timeName( "logs/src_h264_", "log" ) 
-  loggedResult = SourceLogger( getOrNone, name ).get
-  drone.startVideo( wrapper, queueResults )
+  if replayLog:
+    for line in metaLog: # TODO refactoring
+      print "XXLINE", line.strip()
+      if line.startswith("h264:"):
+        loggedResult = SourceLogger( None, line.split()[1].strip() ).get
+        break
+    drone.startVideo()
+  else:
+    name = timeName( "logs/src_h264_", "log" ) 
+    metaLog.write("h264: "+name+'\n' )
+    loggedResult = SourceLogger( getOrNone, name ).get
+    drone.startVideo( wrapper, queueResults )
+
   if drone.userEmergencyLanding:
     drone.reset()
   try:

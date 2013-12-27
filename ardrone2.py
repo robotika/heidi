@@ -177,11 +177,11 @@ class ARDrone2:
       self.filename = replayLog
       self.io = MyLogs( self.filename, metaLog=metaLog )
       if self.metaLog:
-        for line in metaLog:
-          print "LINE", line.strip()
-          if line.startswith("sonar:"):
-            self.sonarUpdate = SourceLogger( None, line.split()[1].strip() ).get
-            break
+#        for line in metaLog:
+#          print "LINE", line.strip()
+#          if line.startswith("sonar:"):
+#            self.sonarUpdate = SourceLogger( None, line.split()[1].strip() ).get
+#            break
         for line in metaLog:
           print "LINE", line.strip()
           if line.startswith("console:"):
