@@ -4,7 +4,7 @@
   usage:
        ./h264drone.py <task|reply> [<reply log> [F]]
 """
-from ardrone2 import ARDrone2, ManualControlException
+from ardrone2 import ARDrone2, ManualControlException, manualControl
 from sourcelogger import SourceLogger
 
 import sys
@@ -132,14 +132,15 @@ def h264drone( replayLog, metaLog ):
     drone.reset()
   try:
     drone.wait(1.0)
-    #drone.takeoff( enabledCorrections = False )
+    drone.takeoff( enabledCorrections = False )
     # TODO some flying
     for i in xrange(100):
       drone.moveXYZA( 0.0, 0.0, 0.0, 0.0 )
+#      drone.moveXYZA( drone.speed, 0.0, 0.0, 0.0 )
       drone.update()
       tmp = loggedResult()
       if tmp != None:
-        print "QUEUE", tmp
+        print "QUEUE", drone.time, tmp
     drone.land()
     drone.wait(1.0)
   except ManualControlException, e:
