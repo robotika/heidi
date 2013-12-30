@@ -23,6 +23,10 @@ import h264
 h264.verbose = False
 from h264nav import quadrantMotion
 
+MAX_COUNT = 1000
+MIN_STEP = 100
+
+
 def timeName( prefix, ext ):
   dt = datetime.datetime.now()
   filename = prefix + dt.strftime("%y%m%d_%H%M%S.") + ext
@@ -37,22 +41,27 @@ class PacketProcessor( Thread ):
     self.buf = ""
     self.readyForProcessing = ""
     self._lastResult = None
+    self.timestamp = None
+    self.frameNum = None
     self.shouldIRun = Event()
     self.shouldIRun.set()
     self.start()
 
   def process( self, packet ):
     if packet.startswith("PaVE"): # PaVE (Parrot Video Encapsulation)
-      if len(self.buf) >= 12:
+      if len(self.buf) >= 28:
         version, codec, headerSize, payloadSize = struct.unpack_from("BBHI", self.buf, 4 )
         assert version == 3, version
         assert codec == 4, codec
+        frameNum, timestamp = struct.unpack_from("II", self.buf, 20 )
 #        assert len(self.buf) == headerSize + payloadSize, str( (len(self.buf), headerSize, payloadSize) )
         if len(self.buf) == headerSize + payloadSize:
           self.lock.acquire()
 #          if len( self.readyForProcessing ) > 0:
 #            print "skipping", len(self.readyForProcessing)
           self.readyForProcessing = self.buf[headerSize:]
+          self.timestamp = timestamp
+          self.frameNum = frameNum
           self.lock.release()
         else:
           # this looks like frequent case - PaVE is probably also in the middle of the packets
@@ -65,11 +74,13 @@ class PacketProcessor( Thread ):
       if len( self.readyForProcessing) > 0:
         self.lock.acquire()
         tmp = self.readyForProcessing
+        timestamp = self.timestamp
+        frameNum = self.frameNum
         self.readyForProcessing = ""
         self.lock.release()
         mv = h264.parseFrame( tmp )
         self.lock.acquire()
-        self._lastResult = quadrantMotion( mv )
+        self._lastResult = frameNum, timestamp, quadrantMotion( mv )
         self.lock.release()
         print len(mv), self._lastResult
 
@@ -113,7 +124,7 @@ def getOrNone():
     return None
   return queueResults.get()
 
-def h264drone( replayLog, metaLog ):
+def h264drone( replayLog, metaLog, desiredSpeed = 1.0, timeout = 5.0 ):
   drone = ARDrone2( replayLog, metaLog=metaLog )
   if replayLog:
     for line in metaLog: # TODO refactoring
@@ -134,13 +145,28 @@ def h264drone( replayLog, metaLog ):
     drone.wait(1.0)
     drone.takeoff( enabledCorrections = False )
     # TODO some flying
-    for i in xrange(100):
-      drone.moveXYZA( 0.0, 0.0, 0.0, 0.0 )
-#      drone.moveXYZA( drone.speed, 0.0, 0.0, 0.0 )
-      drone.update()
+    startTime = drone.time
+    vz = 0.0
+    while drone.time-startTime < timeout:
+#      print "SPEED", drone.vx
+      if drone.vx > desiredSpeed:
+        drone.moveXYZA( 0.0, 0.0, 0.0, vz )
+      else:
+        drone.moveXYZA( drone.speed, 0.0, 0.0, vz )
+      drone.update() # to be removed
       tmp = loggedResult()
       if tmp != None:
         print "QUEUE", drone.time, tmp
+        frameNum, timestamp, (left, right, up, down ) = tmp
+        vz = 0.0
+        if left + right < MAX_COUNT: # limited max number of movements in the whole image
+          if down > up + MIN_STEP:
+            # move up
+            vz = drone.speed
+          if up > down + MIN_STEP:
+            # move down
+            vz = -drone.speed
+          
     drone.land()
     drone.wait(1.0)
   except ManualControlException, e:
