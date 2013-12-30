@@ -153,7 +153,6 @@ def h264drone( replayLog, metaLog, desiredSpeed = 1.0, timeout = 5.0 ):
         drone.moveXYZA( 0.0, 0.0, 0.0, vz )
       else:
         drone.moveXYZA( drone.speed, 0.0, 0.0, vz )
-      drone.update() # to be removed
       tmp = loggedResult()
       if tmp != None:
         print "QUEUE", drone.time, tmp
