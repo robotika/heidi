@@ -41,6 +41,14 @@ class PaVE2Test( unittest.TestCase ):
     self.assertEqual( p.extract(), s1 )
     self.assertEqual( p.extract(), s2 )
 
+  def testBadBytesBetweenTwoPackes( self ):
+    p = PaVE()
+    s1 = buildPacket( "First packet" )
+    s2 = buildPacket( "Second packet" )
+    p. append( s1 + "bad bytes" + s2 )
+    self.assertEqual( p.extract(), s1 )
+    self.assertEqual( p.extract(), s2 )
+
 
 if __name__ == "__main__":
   unittest.main() 

@@ -12,12 +12,13 @@ class PaVE:
 
   def append( self, packet ):
     self.buf += packet
+
+
+  def extract( self ):
     if not self.buf.startswith("PaVE"):
       if "PaVE" in self.buf:
         self.buf = self.buf[ self.buf.index("PaVE") : ]
 
-
-  def extract( self ):
     if len(self.buf) < 4+1+1+2+4:
       # at least struct of version and header and payload sizes must be ready
       return ""
