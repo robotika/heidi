@@ -150,9 +150,9 @@ def h264drone( replayLog, metaLog, desiredSpeed = 1.0, timeout = 5.0 ):
     while drone.time-startTime < timeout:
 #      print "SPEED", drone.vx
       if drone.vx > desiredSpeed:
-        drone.moveXYZA( 0.0, 0.0, 0.0, vz )
+        drone.moveXYZA( 0.0, 0.0, vz, 0.0 )
       else:
-        drone.moveXYZA( drone.speed, 0.0, 0.0, vz )
+        drone.moveXYZA( drone.speed, 0.0, vz, 0.0 )
       tmp = loggedResult()
       if tmp != None:
         print "QUEUE", drone.time, tmp
