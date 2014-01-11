@@ -39,3 +39,15 @@ if __name__ == "__main__":
     print __doc__
     sys.exit(2)
 
+  filename, size = sys.argv[1], int(sys.argv[2])
+  merger = PaVE()
+  f = open( filename, "rb" )
+  tmp = f.read( size )
+  while tmp != "":
+    merger.append( tmp )
+    packet = merger.extract()
+    while packet != "":
+      print len(packet)
+      packet = merger.extract()
+    tmp = f.read( size )
+    
