@@ -16,6 +16,7 @@ from threading import Thread,Event,Lock
 import multiprocessing
 
 import viewlog
+from pave import PaVE
 
 # import from the h264-drone-vision repository (https://github.com/robotika/h264-drone-vision)
 sys.path.append( ".."+os.sep+"h264-drone-vision") 
@@ -38,7 +39,7 @@ class PacketProcessor( Thread ):
     Thread.__init__( self )
     self.setDaemon( True )
     self.lock = Lock()
-    self.buf = ""
+    self.pave = PaVE()
     self.readyForProcessing = ""
     self._lastResult = None
     self.timestamp = None
@@ -48,26 +49,25 @@ class PacketProcessor( Thread ):
     self.start()
 
   def process( self, packet ):
-    if packet.startswith("PaVE"): # PaVE (Parrot Video Encapsulation)
-      if len(self.buf) >= 28:
-        version, codec, headerSize, payloadSize = struct.unpack_from("BBHI", self.buf, 4 )
+    self.pave.append( packet ) # re-packing
+    buf = self.pave.extract() # TODO multiple packets
+    if buf != "":
+      if len(buf) >= 28:
+        version, codec, headerSize, payloadSize = struct.unpack_from("BBHI", buf, 4 )
         assert version == 3, version
         assert codec == 4, codec
-        frameNum, timestamp = struct.unpack_from("II", self.buf, 20 )
-#        assert len(self.buf) == headerSize + payloadSize, str( (len(self.buf), headerSize, payloadSize) )
-        if len(self.buf) == headerSize + payloadSize:
+        frameNum, timestamp = struct.unpack_from("II", buf, 20 )
+        if len(buf) == headerSize + payloadSize:
           self.lock.acquire()
 #          if len( self.readyForProcessing ) > 0:
 #            print "skipping", len(self.readyForProcessing)
-          self.readyForProcessing = self.buf[headerSize:]
+          self.readyForProcessing = buf[headerSize:]
           self.timestamp = timestamp
           self.frameNum = frameNum
           self.lock.release()
         else:
           # this looks like frequent case - PaVE is probably also in the middle of the packets
-          print "BAD PACKET", (len(self.buf), headerSize, payloadSize)
-      self.buf = ""
-    self.buf += packet
+          print "BAD PACKET", (len(buf), headerSize, payloadSize)
 
   def run(self):
     while True: #self.shouldIRun.isSet():
