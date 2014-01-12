@@ -132,12 +132,12 @@ def h264drone( replayLog, metaLog, desiredSpeed = 1.0, timeout = 5.0 ):
       if line.startswith("h264:"):
         loggedResult = SourceLogger( None, line.split()[1].strip() ).get
         break
-    drone.startVideo()
+    drone.startVideo( record=False )
   else:
     name = timeName( "logs/src_h264_", "log" ) 
     metaLog.write("h264: "+name+'\n' )
     loggedResult = SourceLogger( getOrNone, name ).get
-    drone.startVideo( wrapper, queueResults )
+    drone.startVideo( wrapper, queueResults, record=False )
 
   if drone.userEmergencyLanding:
     drone.reset()

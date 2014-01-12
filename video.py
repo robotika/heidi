@@ -38,6 +38,7 @@ def logVideoStream( hostPortPair, filename, queueCmd, packetProcessor=None, queu
     except socket.timeout:
       print "Video filename TIMEOUT"
     cmd = nextCmd( queueCmd )
+  print "VIDEO EXITING"
   if flushWholeVideo:
     while True:
       try:

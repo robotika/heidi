@@ -299,26 +299,36 @@ class ARDrone2:
 #    self.confirmedConfig( "AT*CONFIG=%i,\"detect:enemy_without_shell\",\"0\"\r" )
     self.confirmedConfig( "AT*CONFIG=%i,\"video:video_channel\",\"0\"\r" ) # VERTical view
 
-  def startVideo( self, packetProcessor=None, inputQueue=None ):
+  def startVideo( self, packetProcessor=None, inputQueue=None, record=True ):
     if self.videoQueue1 == None and self.videoProcess1 == None:
 #      self.confirmedConfig( "AT*CONFIG=%i,\"video:video_codec\",\"136\"\r" ) # turn on recording
-      self.confirmedConfig( "AT*CONFIG=%i,\"video:video_codec\",\"130\"\r" ) # record MP4_360P_H264_720P_CODEC = 0x82,
+      if record:
+        self.confirmedConfig( "AT*CONFIG=%i,\"video:video_codec\",\"130\"\r" ) # record MP4_360P_H264_720P_CODEC = 0x82,
+      else:
+        self.confirmedConfig( "AT*CONFIG=%i,\"video:video_codec\",\"131\"\r" ) # H264_720P_CODEC = 0x83, 
+
       if self.replayLog == None:
         self.videoQueue1 = Queue()
         filename = datetime.datetime.now().strftime("logs/video_%y%m%d_%H%M%S.bin")
         if self.metaLog:
           self.metaLog.write("video: " + filename + "\n")
           self.metaLog.flush()
-        self.videoProcess1 = Process(target=logVideoStream, args=((HOST, VIDEO_PORT), filename, self.videoQueue1,))
-        self.videoQueue2 = Queue()
-        filename = datetime.datetime.now().strftime("logs/video_rec_%y%m%d_%H%M%S.bin")
-        if self.metaLog:
-          self.metaLog.write("video_rec: " + filename + "\n")
-          self.metaLog.flush()
-        self.videoProcess2 = Process(target=logVideoStream, args=((HOST, VIDEO_RECORDER_PORT), filename, self.videoQueue2, \
-            packetProcessor, inputQueue, True))
+        if record:
+          self.videoProcess1 = Process(target=logVideoStream, args=((HOST, VIDEO_PORT), filename, self.videoQueue1,))
+        else:
+          self.videoProcess1 = Process(target=logVideoStream, args=((HOST, VIDEO_PORT), filename, self.videoQueue1, \
+            packetProcessor, inputQueue, False))
         self.videoProcess1.start()
-        self.videoProcess2.start()
+
+        if record:
+          self.videoQueue2 = Queue()
+          filename = datetime.datetime.now().strftime("logs/video_rec_%y%m%d_%H%M%S.bin")
+          if self.metaLog:
+            self.metaLog.write("video_rec: " + filename + "\n")
+            self.metaLog.flush()
+          self.videoProcess2 = Process(target=logVideoStream, args=((HOST, VIDEO_RECORDER_PORT), filename, self.videoQueue2, \
+              packetProcessor, inputQueue, True))
+          self.videoProcess2.start()
 
   def stopVideo( self ):
     if self.videoQueue1 != None and self.videoProcess1 != None:
@@ -327,12 +337,20 @@ class ARDrone2:
       print "sending video END ..."
       if self.replayLog == None:
         self.videoQueue1.put("The END")
-        self.videoQueue2.put("The END")
+        if self.videoQueue2:
+          self.videoQueue2.put("The END")
         print "waiting for termination ..."
-        self.videoProcess1.join()
+        for i in xrange(50):
+          self.videoProcess1.join( timeout=0.1 )
+          if not self.videoProcess1.is_alive():
+            print "BREAK", i
+            break
+          self.update()
+        else:
+          print "TIMEOUT", i
         self.videoQueue1, self.videoProcess1 = None, None
       self.confirmedConfig( "AT*CONFIG=%i,\"video:video_codec\",\"129\"\r" )
-      if self.replayLog == None:
+      if self.replayLog == None and self.videoProcess2 != None:
         print "finishing record file"
         for i in xrange(300):
           self.videoProcess2.join(timeout=0.1) # i.e. wait 30sec for download and termination
