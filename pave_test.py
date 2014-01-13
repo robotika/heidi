@@ -5,7 +5,7 @@ def buildPacket( payload ):
   return "PaVE" + struct.pack("BBHI", 3, 4, 12, 5) + "ABCDE"
 
 
-class PaVE2Test( unittest.TestCase ): 
+class PaVETest( unittest.TestCase ): 
   def testEmpty( self ):
     p = PaVE()
     p.append( "" )
