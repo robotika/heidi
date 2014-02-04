@@ -300,7 +300,13 @@ class ARDrone2:
 #    self.confirmedConfig( "AT*CONFIG=%i,\"detect:detections_select_v\",\"0\"\r" )
 #    self.confirmedConfig( "AT*CONFIG=%i,\"detect:enemy_colors\",\"2\"\r" ) # ARDRONE_DETECTION_COLOR_ORANGE_YELLOW=2
 #    self.confirmedConfig( "AT*CONFIG=%i,\"detect:enemy_without_shell\",\"0\"\r" )
-    self.confirmedConfig( "AT*CONFIG=%i,\"video:video_channel\",\"0\"\r" ) # VERTical view
+    self.confirmedConfig( "AT*CONFIG=%i,\"video:video_channel\",\"0\"\r" ) # 0=VERTical, 1=HORIzontal view
+
+  def setVideoChannel( self, front=True ):
+    if front:
+      self.confirmedConfig( "AT*CONFIG=%i,\"video:video_channel\",\"0\"\r" ) # 0=VERTical view
+    else:
+      self.confirmedConfig( "AT*CONFIG=%i,\"video:video_channel\",\"1\"\r" ) # 1=HORIzontal view
 
   def startVideo( self, packetProcessor=None, inputQueue=None, record=True ):
     if self.videoQueue1 == None and self.videoProcess1 == None:
