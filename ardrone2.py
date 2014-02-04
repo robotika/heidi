@@ -12,7 +12,8 @@ import socket
 import gzip
 import math
 
-import msvcrt  # for kbhit
+if sys.platform == 'win32':
+  import msvcrt  # for kbhit
 
 import viewlog
 from line import Line
