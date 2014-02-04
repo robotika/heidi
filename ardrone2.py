@@ -166,7 +166,7 @@ def distance( planar1, planar2 ):
   return math.hypot(x, y)
 
 class ARDrone2:
-  def __init__( self, replayLog=None, speed = 0.2, skipConfigure=False, metaLog=None ):
+  def __init__( self, replayLog=None, speed = 0.2, skipConfigure=False, metaLog=None, console=None ):
     self.replayLog = replayLog
     self.metaLog = metaLog
     self.sonar = None
@@ -199,7 +199,9 @@ class ARDrone2:
 #        self.sonar.start()
         consoleFilename = datetime.datetime.now().strftime("logs/console_src_%y%m%d_%H%M%S.log")
         self.metaLog.write("console: "+consoleFilename+'\n' )
-        self.console = SourceLogger( myKbhit, consoleFilename ).get
+        if console == None:
+          console = myKbhit
+        self.console = SourceLogger( console, consoleFilename ).get
     print self.filename
     self.speed = speed
     self.manualControl = False
