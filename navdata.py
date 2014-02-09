@@ -68,6 +68,7 @@ NAVDATA_DEMO_TAG = 0
 NAVDATA_TIME_TAG = 1
 NAVDATA_RAW_MEASURES_TAG = 2
 NAVDATA_ALTITUDE_TAG = 10
+NAVDATA_TRACKERS_SEND_TAG = 15
 NAVDATA_VISION_DETECT_TAG = 16
 NAVDATA_IPHONE_ANGLES_TAG = 18
 NAVDATA_MAGNETO_TAG = 22
@@ -92,6 +93,10 @@ def parseDemoTag( data, offset ):
   values['ctrl_state'] >>= 16
   return values
 
+def parseTrackersSendTag( data, offset ):
+  values = struct.unpack_from("iii"*30, data, offset+4) # locked, (x,y)
+  return values
+  
 
 def parseVisionDetectTag( data, offset ):
   "tag == NAVDATA_VISION_DETECT_TAG"
@@ -200,6 +205,10 @@ def parseNavData( packet ):
     if tag == NAVDATA_ALTITUDE_TAG:
       (altVision, altVz, altRef, altRaw) = struct.unpack_from("ifii", "".join(values))
 #      print "ALT", (altVision, altVz, altRef, altRaw)
+
+    if tag == NAVDATA_TRACKERS_SEND_TAG:
+      print "TRACKERS", parseTrackersSendTag( "ABCD"+"".join(values), 0 )
+
 
     if tag == NAVDATA_MAGNETO_TAG:
       magneto = parseMagnetoTag("ABCD"+ "".join(values), 0 )
