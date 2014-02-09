@@ -2,7 +2,7 @@
 """
   AR Drone 2.0 Python interface
   usage:
-       ./ardrone2.py <task|reply> [<reply log> [F]]
+       ./ardrone2.py <task|replay> [<replay log> [F]]
 """
 # interface based on https://github.com/venthur/python-ardrone
 import sys
