@@ -18,10 +18,22 @@ def testFrame( filename ):
   processFrame( img, debug=True )
   cv2.waitKey(0)
 
+def testVideo( filename ):
+  cap = cv2.VideoCapture( filename )
+  while(cap.isOpened()):
+    ret, frame = cap.read()
+    if ret:
+      processFrame( frame, debug=True )
+    else:
+      break
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+      break
+  cap.release()
+
 if __name__ == "__main__":
   if len(sys.argv) < 2:
     print __doc__
     sys.exit(2)
-  testFrame( sys.argv[1] )
+  testVideo( sys.argv[1] )
   cv2.destroyAllWindows()
 
