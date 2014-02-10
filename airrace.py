@@ -9,9 +9,11 @@
 import sys
 import cv2
 
-def processFrame( img, debug=False ):
+def processFrame( frame, debug=False ):
+  gray = cv2.cvtColor( frame, cv2.COLOR_BGR2GRAY )
+  ret, binary = cv2.threshold( gray, 0, 255, cv2.THRESH_OTSU )
   if debug:
-    cv2.imshow('image',img)
+    cv2.imshow('image', binary)
 
 def testFrame( filename ):
   img = cv2.imread( filename, 0 )
