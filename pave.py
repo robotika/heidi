@@ -15,22 +15,23 @@ class PaVE:
 
 
   def extract( self ):
+    "return single packet (header, payload)"
     if not self.buf.startswith("PaVE"):
       if "PaVE" in self.buf:
         self.buf = self.buf[ self.buf.index("PaVE") : ]
 
     if len(self.buf) < 4+1+1+2+4:
       # at least struct of version and header and payload sizes must be ready
-      return ""
+      return "",""
     
     if not self.buf.startswith( "PaVE" ):
-      return ""
+      return "",""
 
     version, codec, headerSize, payloadSize = struct.unpack_from("BBHI", self.buf, 4 )
     if len(self.buf) < headerSize + payloadSize:
-      return ""
+      return "",""
 
-    ret = self.buf[:headerSize + payloadSize]
+    ret = self.buf[:headerSize], self.buf[headerSize:headerSize+payloadSize]
     self.buf = self.buf[headerSize + payloadSize : ]
     return ret
 

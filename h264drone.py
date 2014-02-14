@@ -50,24 +50,24 @@ class PacketProcessor( Thread ):
 
   def process( self, packet ):
     self.pave.append( packet ) # re-packing
-    buf = self.pave.extract() # TODO multiple packets
-    if buf != "":
-      if len(buf) >= 28:
-        version, codec, headerSize, payloadSize = struct.unpack_from("BBHI", buf, 4 )
+    header,payload = self.pave.extract() # TODO multiple packets
+    if header != "":
+      if len(header) >= 28:
+        version, codec, headerSize, payloadSize = struct.unpack_from("BBHI", header, 4 )
         assert version == 3, version
         assert codec == 4, codec
-        frameNum, timestamp = struct.unpack_from("II", buf, 20 )
-        if len(buf) == headerSize + payloadSize:
+        frameNum, timestamp = struct.unpack_from("II", header, 20 )
+        if len(payload) == payloadSize:
           self.lock.acquire()
 #          if len( self.readyForProcessing ) > 0:
 #            print "skipping", len(self.readyForProcessing)
-          self.readyForProcessing = buf[headerSize:]
+          self.readyForProcessing = payload[:]
           self.timestamp = timestamp
           self.frameNum = frameNum
           self.lock.release()
         else:
           # this looks like frequent case - PaVE is probably also in the middle of the packets
-          print "BAD PACKET", (len(buf), headerSize, payloadSize)
+          print "BAD PACKET", (len(payload), headerSize, payloadSize)
 
   def run(self):
     while True: #self.shouldIRun.isSet():

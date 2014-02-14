@@ -9,6 +9,7 @@
 import sys
 import cv2
 import numpy as np
+from paveproxy import PaVEProxy
 
 def processFrame( frame, debug=False ):
   result = []
@@ -46,6 +47,11 @@ def testVideo( filename ):
       break
   cap.release()
 
+
+def isParrotVideo( filename ):
+  return open( filename ).read(4) == "PaVE"
+
+
 if __name__ == "__main__":
   if len(sys.argv) < 2:
     print __doc__
@@ -54,6 +60,10 @@ if __name__ == "__main__":
   if filename.endswith(".jpg"):
     testFrame( filename )
   else:
-    testVideo( sys.argv[1] )
+    if isParrotVideo( filename ):
+      pp = PaVEProxy( open( filename, "rb" ).read )
+      testVideo( 'tcp://localhost:50007/' )
+    else:
+      testVideo( filename )
   cv2.destroyAllWindows()
 
