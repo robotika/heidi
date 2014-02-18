@@ -58,6 +58,14 @@ class AirRaceDrone( ARDrone2 ):
       metaLog.write("cv2: "+name+'\n' )
       self.loggedVideoResult = SourceLogger( getOrNone, name ).get
       self.startVideo( wrapper, g_queueResults, record=True )
+    else:
+      assert metaLog
+      for line in metaLog: # TODO refactoring
+        print "XXLINE", line.strip()
+        if line.startswith("cv2:"):
+          self.loggedVideoResult = SourceLogger( None, line.split()[1].strip() ).get
+          break
+      self.startVideo( record=True )
 
   def update( self, cmd="AT*COMWDG=%i,\r" ):
     ARDrone2.update( self, cmd )
@@ -71,6 +79,22 @@ def competeAirRace( drone ):
     drone.setVideoChannel( front=False )    
     drone.takeoff()
     drone.hover(1.0)
+    print "NAVI-ON"
+    startTime = drone.time
+    turn = 0
+    while drone.time < startTime + 3.0:
+      if drone.lastImageResult:
+#        print "IMG", drone.lastImageResult
+        if len(drone.lastImageResult) > 0:
+          angle = drone.lastImageResult[0][2]
+          print angle
+          if angle > 0:
+            turn = 0.2
+          else:
+            turn = -0.2
+      drone.moveXYZA( 0, 0, 0, turn )
+    print "NAVI-OFF"
+    drone.hover(0.5)
     drone.land()
     drone.setVideoChannel( front=True )    
   except ManualControlException, e:
