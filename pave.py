@@ -35,6 +35,10 @@ class PaVE:
     self.buf = self.buf[headerSize + payloadSize : ]
     return ret
 
+def isIFrame( header ):
+  "return True if I-Frame"
+  return struct.unpack_from("B", header, 30)[0] == 1
+
 if __name__ == "__main__":
   if len(sys.argv) < 3:
     print __doc__

@@ -9,7 +9,7 @@
 import sys
 import cv2
 import numpy as np
-from pave import PaVE
+from pave import PaVE, isIFrame
 
 def processFrame( frame, debug=False ):
   result = []
@@ -49,7 +49,6 @@ def testVideo( filename ):
 
 def testPaVEVideo( filename ):
   f = open( filename, "rb" )
-  tmpFile = open( "tmp.bin", "wb" )
   data = f.read(10000)
   pave = PaVE()
   cap = None
@@ -58,14 +57,14 @@ def testPaVEVideo( filename ):
     pave.append( data )
     header,payload = pave.extract()
     while payload:
-      tmpFile.write( payload )
-      tmpFile.flush()
-      total += len( payload )
-      if cap == None:
-        if total > 100000:
-          cap = cv2.VideoCapture( "tmp.bin" )
-      else:
+      if isIFrame( header ):
+        tmpFile = open( "tmp.bin", "wb" )
+        tmpFile.write( payload )
+        tmpFile.flush()
+        tmpFile.close()
+        cap = cv2.VideoCapture( "tmp.bin" )
         ret, frame = cap.read()
+        assert ret
         if ret:
           processFrame( frame, debug=True )
       header,payload = pave.extract()
