@@ -9,7 +9,7 @@
 import sys
 import cv2
 import numpy as np
-from paveproxy import PaVEProxy
+from pave import PaVE
 
 def processFrame( frame, debug=False ):
   result = []
@@ -47,10 +47,34 @@ def testVideo( filename ):
       break
   cap.release()
 
+def testPaVEVideo( filename ):
+  f = open( filename, "rb" )
+  tmpFile = open( "tmp.bin", "wb" )
+  data = f.read(10000)
+  pave = PaVE()
+  cap = None
+  total = 0
+  while len(data) > 0:
+    pave.append( data )
+    header,payload = pave.extract()
+    while payload:
+      tmpFile.write( payload )
+      tmpFile.flush()
+      total += len( payload )
+      if cap == None:
+        if total > 100000:
+          cap = cv2.VideoCapture( "tmp.bin" )
+      else:
+        ret, frame = cap.read()
+        if ret:
+          processFrame( frame, debug=True )
+      header,payload = pave.extract()
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+      break
+    data = f.read(10000)
 
 def isParrotVideo( filename ):
   return open( filename ).read(4) == "PaVE"
-
 
 if __name__ == "__main__":
   if len(sys.argv) < 2:
@@ -61,8 +85,7 @@ if __name__ == "__main__":
     testFrame( filename )
   else:
     if isParrotVideo( filename ):
-      pp = PaVEProxy( open( filename, "rb" ).read )
-      testVideo( 'tcp://localhost:50007/' )
+      testPaVEVideo( filename )
     else:
       testVideo( filename )
   cv2.destroyAllWindows()
