@@ -11,6 +11,8 @@ import cv2
 import numpy as np
 from pave import PaVE, isIFrame
 
+g_index = 0
+
 def processFrame( frame, debug=False ):
   result = []
   gray = cv2.cvtColor( frame, cv2.COLOR_BGR2GRAY )
@@ -28,7 +30,24 @@ def processFrame( frame, debug=False ):
       box = np.int0(box)
       cv2.drawContours( frame,[box],0,(0,0,255),2)
     cv2.imshow('image', frame)
+    # save image for simpler results review, angle is used as hash for search sub-sequence
+    global g_index
+    if len(result) > 0:
+      angle = int(result[0][2])
+    else:
+      angle = 999
+    cv2.imwrite( "tmp%03d_%d.jpg" % (g_index, angle), frame )
+    g_index += 1
   return result
+
+def filterRectangles( rects ):
+  ret = []
+  for (x,y),(w,h),a in rects:
+    if w < h:
+      w,h,a = h,w,a+90
+    if w > 3*h:
+      ret.append( ((x,y,),(w,h),a) )
+  return ret
 
 def testFrame( filename ):
   img = cv2.imread( filename, cv2.CV_LOAD_IMAGE_COLOR )
