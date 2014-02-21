@@ -8,8 +8,9 @@ import sys
 import datetime
 import multiprocessing
 import cv2
+import math
 from pave import PaVE, isIFrame
-from airrace import processFrame
+from airrace import processFrame, filterRectangles, stripPose
 from sourcelogger import SourceLogger
 from ardrone2 import ARDrone2, ManualControlException, manualControl
 
@@ -88,10 +89,14 @@ def competeAirRace( drone ):
         if len(drone.lastImageResult) > 0:
           angle = drone.lastImageResult[0][2]
           print angle
-          if angle > 0:
-            turn = 0.2
-          else:
-            turn = -0.2
+          rects = filterRectangles( drone.lastImageResult )
+          if len(rects) > 0:
+            pose = stripPose( rects[0] )
+            print pose, "(%.2f %.2f %.2f)" % drone.coord, " heading=%.1f" % math.degrees(drone.heading)
+            if pose[2] > 0: # angle
+              turn = 0.2
+            else:
+              turn = -0.2
       drone.moveXYZA( 0, 0, 0, turn )
     print "NAVI-OFF"
     drone.hover(0.5)

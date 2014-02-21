@@ -8,6 +8,7 @@
 # http://docs.opencv.org/trunk/doc/py_tutorials/py_tutorials.html
 import sys
 import cv2
+import math
 import numpy as np
 from pave import PaVE, isIFrame
 
@@ -48,6 +49,19 @@ def filterRectangles( rects ):
     if w > 3*h:
       ret.append( ((x,y,),(w,h),a) )
   return ret
+
+def stripPose( rect ):
+  "return relative pose of image rectangle"
+  (x,y),(w,h),a = rect
+  assert w > 3*h, (w,h)  # 30cm long, 5cm wide ... i.e. should be 6 times
+  a = -a-90
+  if a > 90:
+    a -= 180
+  if a < -90:
+    a += 180
+  # TODO estimate z-coordinate and scale (x,y)
+  # TODO image resolution as parameter? (possibility of direct or recorded video)
+  return 720/2-y, x-1280/2, math.radians( a )
 
 def testFrame( filename ):
   img = cv2.imread( filename, cv2.CV_LOAD_IMAGE_COLOR )
