@@ -39,7 +39,7 @@ def processFrame( frame, debug=False ):
       angle = 999
     cv2.imwrite( "tmp%03d_%d.jpg" % (g_index, angle), frame )
     g_index += 1
-  return result
+  return [((int(x),int(y)),(int(w),int(h)),int(a)) for ((x,y),(w,h),a) in result]
 
 def filterRectangles( rects ):
   ret = []
@@ -99,7 +99,7 @@ def testPaVEVideo( filename ):
         ret, frame = cap.read()
         assert ret
         if ret:
-          processFrame( frame, debug=True )
+          print processFrame( frame, debug=True )
       header,payload = pave.extract()
     if cv2.waitKey(1) & 0xFF == ord('q'):
       break
