@@ -74,7 +74,7 @@ class AirRaceDrone( ARDrone2 ):
       self.lastImageResult = self.loggedVideoResult()
 
 
-def competeAirRace( drone ):
+def competeAirRace( drone, desiredSpeed = 0.5, desiredHeight = 1.5 ):
   try:
     drone.wait(1.0)
     drone.setVideoChannel( front=False )    
@@ -82,10 +82,22 @@ def competeAirRace( drone ):
     drone.hover(1.0)
     print "NAVI-ON"
     startTime = drone.time
-    turn = 0
+    sx,sy,sz,sa = 0,0,0,0
     while drone.time < startTime + 3.0:
+      # keep height approx at 1.5m
+      if drone.coord[2] < desiredHeight-0.1:
+        sz = 0.1
+      elif drone.coord[2] > desiredHeight+0.1:
+        sz = -0.1
+      else:
+        sz = 0
+      # keep speed at max 1m/s
+      if drone.vx > desiredSpeed:
+        sx = 0
+      else:
+        sx = drone.speed
+
       if drone.lastImageResult:
-#        print "IMG", drone.lastImageResult
         if len(drone.lastImageResult) > 0:
           angle = drone.lastImageResult[0][2]
           print angle
@@ -94,16 +106,18 @@ def competeAirRace( drone ):
             pose = stripPose( rects[0] )
             print pose, "(%.2f %.2f %.2f)" % drone.coord, " heading=%.1f" % math.degrees(drone.heading)
             if pose[2] > 0: # angle
-              turn = 0.2
+              sa = 0.2
             else:
-              turn = -0.2
-      drone.moveXYZA( 0, 0, 0, turn )
+              sa = -0.2
+      drone.moveXYZA( sx, sy, sz, sa )
     print "NAVI-OFF"
     drone.hover(0.5)
     drone.land()
     drone.setVideoChannel( front=True )    
   except ManualControlException, e:
     print "ManualControlException"
+    if drone.ctrlState == 3: # CTRL_FLYING=3 ... i.e. stop the current motion
+      drone.hover(0.1)
     drone.land()
   drone.wait(1.0)
   drone.stopVideo()
