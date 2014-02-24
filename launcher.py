@@ -6,6 +6,7 @@
 """
 import datetime
 import viewlog
+import ardrone2
 
 def launch(cmd_args, robotFactory, task, configFn = None, canArgs={}):
   '''
@@ -28,7 +29,7 @@ def launch(cmd_args, robotFactory, task, configFn = None, canArgs={}):
 
   # TODO unified launcher, similar to Eduro
   if len(cmd_args) > 3 and cmd_args[3] == 'F':
-    g_checkAssert = False
+    ardrone2.g_checkAssert = False
   replayLog = None
   metaLog = None
   if len(cmd_args) > 2:
