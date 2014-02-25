@@ -12,8 +12,9 @@ class AirRaceTest( unittest.TestCase ):
     self.assertEqual( filterRectangles( [((982, 492), (29, 17), -45), ((951, 507), (60, 84), -69)] ), [] )
 
   def testStripPose( self ):
-    self.assertEqual( stripPose( ((223, 440), (319, 60), -88) ), (720/2-440, 223-1280/2, math.radians(-2)) )
-    self.assertEqual( stripPose( ((298, 508), (319, 58), 75) ), (720/2-508, 298-1280/2, math.radians(15)) )
+    s = 0.3/319.
+    self.assertEqual( stripPose( ((223, 440), (319, 60), -88) ), (s*(720/2-440), s*(223-1280/2), math.radians(-2)) )
+    self.assertEqual( stripPose( ((298, 508), (319, 58), 75) ), (s*(720/2-508), s*(298-1280/2), math.radians(15)) )
 
 if __name__ == "__main__":
   unittest.main() 

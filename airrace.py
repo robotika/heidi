@@ -59,9 +59,8 @@ def stripPose( rect ):
     a -= 180
   if a < -90:
     a += 180
-  # TODO estimate z-coordinate and scale (x,y)
-  # TODO image resolution as parameter? (possibility of direct or recorded video)
-  return 720/2-y, x-1280/2, math.radians( a )
+  scale = 0.3/float(w)
+  return scale*(720/2-y), scale*(x-1280/2), math.radians( a )
 
 def testFrame( filename ):
   img = cv2.imread( filename, cv2.CV_LOAD_IMAGE_COLOR )

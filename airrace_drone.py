@@ -13,7 +13,8 @@ from pave import PaVE, isIFrame
 from airrace import processFrame, filterRectangles, stripPose
 from sourcelogger import SourceLogger
 from ardrone2 import ARDrone2, ManualControlException, manualControl
-
+import viewlog
+from viewer import getCombinedPose # TODO refactoring
 
 def timeName( prefix, ext ):
   dt = datetime.datetime.now()
@@ -109,6 +110,9 @@ def competeAirRace( drone, desiredSpeed = 0.5, desiredHeight = 1.5 ):
               sa = 0.2
             else:
               sa = -0.2
+            for r in rects:
+              coord = getCombinedPose( (drone.coord[0], drone.coord[1], drone.heading), stripPose( r ) )
+              viewlog.dumpBeacon( (coord[0], coord[1]), index=3 )
       drone.moveXYZA( sx, sy, sz, sa )
     print "NAVI-OFF"
     drone.hover(0.5)
