@@ -29,6 +29,10 @@ def processFrame( frame, debug=False ):
     for rect in result:
       box = cv2.cv.BoxPoints(rect)
       box = np.int0(box)
+      cv2.drawContours( frame,[box],0,(255,0,0),2)
+    for rect in filterRectangles(result):
+      box = cv2.cv.BoxPoints(rect)
+      box = np.int0(box)
       cv2.drawContours( frame,[box],0,(0,0,255),2)
     cv2.imshow('image', frame)
     # save image for simpler results review, angle is used as hash for search sub-sequence
@@ -41,12 +45,12 @@ def processFrame( frame, debug=False ):
     g_index += 1
   return [((int(x),int(y)),(int(w),int(h)),int(a)) for ((x,y),(w,h),a) in result]
 
-def filterRectangles( rects ):
+def filterRectangles( rects, minWidth=150 ):
   ret = []
   for (x,y),(w,h),a in rects:
     if w < h:
       w,h,a = h,w,a+90
-    if w > 3*h:
+    if w > 3*h and w >= minWidth:
       ret.append( ((x,y,),(w,h),a) )
   return ret
 
@@ -60,7 +64,7 @@ def stripPose( rect ):
   if a < -90:
     a += 180
   scale = 0.3/float(w)
-  return scale*(720/2-y), scale*(x-1280/2), math.radians( a )
+  return scale*(720/2-y), scale*(1280/2-x), math.radians( a )
 
 def testFrame( filename ):
   img = cv2.imread( filename, cv2.CV_LOAD_IMAGE_COLOR )

@@ -75,7 +75,8 @@ class AirRaceDrone( ARDrone2 ):
       self.lastImageResult = self.loggedVideoResult()
 
 
-def competeAirRace( drone, desiredSpeed = 0.5, desiredHeight = 1.5 ):
+def competeAirRace( drone, desiredSpeed = 1.5, desiredHeight = 1.5 ):
+  drone.speed = 0.05
   try:
     drone.wait(1.0)
     drone.setVideoChannel( front=False )    
@@ -84,7 +85,8 @@ def competeAirRace( drone, desiredSpeed = 0.5, desiredHeight = 1.5 ):
     print "NAVI-ON"
     startTime = drone.time
     sx,sy,sz,sa = 0,0,0,0
-    while drone.time < startTime + 3.0:
+    lastUpdate = None
+    while drone.time < startTime + 120.0:
       # keep height approx at 1.5m
       if drone.coord[2] < desiredHeight-0.1:
         sz = 0.1
@@ -99,6 +101,7 @@ def competeAirRace( drone, desiredSpeed = 0.5, desiredHeight = 1.5 ):
         sx = drone.speed
 
       if drone.lastImageResult:
+        lastUpdate = drone.time
         if len(drone.lastImageResult) > 0:
           angle = drone.lastImageResult[0][2]
           print angle
@@ -106,14 +109,25 @@ def competeAirRace( drone, desiredSpeed = 0.5, desiredHeight = 1.5 ):
           if len(rects) > 0:
             pose = stripPose( rects[0] )
             print pose, "(%.2f %.2f %.2f)" % drone.coord, " heading=%.1f" % math.degrees(drone.heading)
-            if pose[2] > 0: # angle
-              sa = 0.2
+            if pose[2] > math.radians(15): # angle
+              sa = 0.1
+            elif pose[2] < -math.radians(15):
+              sa = -0.1
             else:
-              sa = -0.2
+              sa = 0.0
+            if pose[1] > 0.1: # Y
+              sy = 0.05
+            elif pose[1] < -0.1:
+              sy = -0.05
+            else:
+              sy = 0.0
             for r in rects:
               coord = getCombinedPose( (drone.coord[0], drone.coord[1], drone.heading), stripPose( r ) )
               viewlog.dumpBeacon( (coord[0], coord[1]), index=3 )
-      drone.moveXYZA( sx, sy, sz, sa )
+      if lastUpdate == None or drone.time > lastUpdate + 0.7:
+        drone.update("AT*PCMD=%i,0,0,0,0,0\r") # drone.hover(0.1)
+      else:
+        drone.moveXYZA( sx, sy, sz, sa )
     print "NAVI-OFF"
     drone.hover(0.5)
     drone.land()
