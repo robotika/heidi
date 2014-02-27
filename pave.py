@@ -39,6 +39,13 @@ def isIFrame( header ):
   "return True if I-Frame"
   return struct.unpack_from("B", header, 30)[0] == 1
 
+def frameIndex( header ):
+  return struct.unpack_from("I", header, 20)[0]
+
+def timestamp( header ):
+  return struct.unpack_from("I", header, 24)[0]
+
+
 if __name__ == "__main__":
   if len(sys.argv) < 3:
     print __doc__
@@ -50,9 +57,9 @@ if __name__ == "__main__":
   tmp = f.read( size )
   while tmp != "":
     merger.append( tmp )
-    packet = merger.extract()
-    while packet != "":
-      print len(packet)
-      packet = merger.extract()
+    header, payload = merger.extract()
+    while payload != "":
+      print isIFrame(header), frameIndex(header), timestamp(header), len(payload)
+      header, payload = merger.extract()
     tmp = f.read( size )
     
