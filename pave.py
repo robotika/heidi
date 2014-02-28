@@ -39,7 +39,7 @@ def isIFrame( header ):
   "return True if I-Frame"
   return struct.unpack_from("B", header, 30)[0] == 1
 
-def frameIndex( header ):
+def frameNumber( header ):
   return struct.unpack_from("I", header, 20)[0]
 
 def timestamp( header ):
@@ -59,7 +59,7 @@ if __name__ == "__main__":
     merger.append( tmp )
     header, payload = merger.extract()
     while payload != "":
-      print isIFrame(header), frameIndex(header), timestamp(header), len(payload)
+      print isIFrame(header), frameNumber(header), timestamp(header), len(payload)
       header, payload = merger.extract()
     tmp = f.read( size )
     

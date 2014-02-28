@@ -2,7 +2,7 @@
 """
   AirRace competition in Vienna. See robotchallenge.org
   usage:
-       ./airrace.py <TODO>
+       ./airrace.py <image or video file>
 """
 # for introduction of cv2 for Python have a look at
 # http://docs.opencv.org/trunk/doc/py_tutorials/py_tutorials.html
@@ -10,7 +10,7 @@ import sys
 import cv2
 import math
 import numpy as np
-from pave import PaVE, isIFrame
+from pave import PaVE, isIFrame, frameNumber, timestamp
 
 g_index = 0
 
@@ -102,7 +102,7 @@ def testPaVEVideo( filename ):
         ret, frame = cap.read()
         assert ret
         if ret:
-          print processFrame( frame, debug=True )
+          print (frameNumber( header ), timestamp(header)), processFrame( frame, debug=True )
       header,payload = pave.extract()
     if cv2.waitKey(1) & 0xFF == ord('q'):
       break

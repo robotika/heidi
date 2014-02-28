@@ -9,7 +9,7 @@ import datetime
 import multiprocessing
 import cv2
 import math
-from pave import PaVE, isIFrame
+from pave import PaVE, isIFrame, frameNumber, timestamp
 from airrace import processFrame, filterRectangles, stripPose
 from sourcelogger import SourceLogger
 from ardrone2 import ARDrone2, ManualControlException, manualControl
@@ -39,7 +39,7 @@ def wrapper( packet ):
       ret, frame = cap.read()
       assert ret
       if ret:
-        return processFrame( frame, debug=False )
+        return (frameNumber( header ), timestamp(header)), processFrame( frame, debug=False )
     header,payload = g_pave.extract()
 
 g_queueResults = multiprocessing.Queue()
@@ -102,10 +102,15 @@ def competeAirRace( drone, desiredSpeed = 1.5, desiredHeight = 1.5 ):
 
       if drone.lastImageResult:
         lastUpdate = drone.time
-        if len(drone.lastImageResult) > 0:
-          angle = drone.lastImageResult[0][2]
+        # temporary workaround for log files without (frameNumber, timestamp)
+        if len( drone.lastImageResult ) == 2 and len( drone.lastImageResult[0] ) == 2:
+          indexStamp, lastRect = drone.lastImageResult
+        else:
+          lastRect = drone.lastImageResult
+        if len(lastRect) > 0:
+          angle = lastRect[0][2]
           print angle
-          rects = filterRectangles( drone.lastImageResult )
+          rects = filterRectangles( lastRect )
           if len(rects) > 0:
             pose = stripPose( rects[0] )
             print pose, "(%.2f %.2f %.2f)" % drone.coord, " heading=%.1f" % math.degrees(drone.heading)
