@@ -12,7 +12,7 @@ import math
 import numpy as np
 from pave import PaVE, isIFrame, frameNumber, timestamp
 
-g_index = 0
+g_filename = None
 
 def processFrame( frame, debug=False ):
   result = []
@@ -36,13 +36,8 @@ def processFrame( frame, debug=False ):
       cv2.drawContours( frame,[box],0,(0,0,255),2)
     cv2.imshow('image', frame)
     # save image for simpler results review, angle is used as hash for search sub-sequence
-    global g_index
-    if len(result) > 0:
-      angle = int(result[0][2])
-    else:
-      angle = 999
-    cv2.imwrite( "tmp%03d_%d.jpg" % (g_index, angle), frame )
-    g_index += 1
+    if g_filename:
+      cv2.imwrite( g_filename, frame )
   return [((int(x),int(y)),(int(w),int(h)),int(a)) for ((x,y),(w,h),a) in result]
 
 def filterRectangles( rects, minWidth=150 ):
@@ -65,6 +60,27 @@ def stripPose( rect ):
     a += 180
   scale = 0.3/float(w)
   return scale*(720/2-y), scale*(1280/2-x), math.radians( a )
+
+PATH_UNKNOWN = 0
+PATH_STRAIGHT = 1
+PATH_CROSSING = 2
+PATH_TURN_RIGHT = 3
+PATH_TURN_LEFT = 4
+
+def classifyPath( poses ):
+  if len(poses) < 2:
+    return PATH_UNKNOWN
+  # poses are expected to by in range -PI/2, PI/2
+  p1, p2 = poses[:2]
+  if math.fabs(p1[2]-p2[2]) < math.radians(10):
+    return PATH_STRAIGHT
+  if math.fabs(p1[2]-p2[2]) > math.radians(70):
+    return PATH_CROSSING
+  if p1[2] > p2[2]:
+    return PATH_TURN_RIGHT
+  else:
+    return PATH_TURN_LEFT
+
 
 def testFrame( filename ):
   img = cv2.imread( filename, cv2.CV_LOAD_IMAGE_COLOR )
@@ -102,7 +118,10 @@ def testPaVEVideo( filename ):
         ret, frame = cap.read()
         assert ret
         if ret:
-          print (frameNumber( header ), timestamp(header)), processFrame( frame, debug=True )
+          global g_filename
+          g_filename = "tmp_%03d.jpg" % (frameNumber( header ))
+#          print (frameNumber( header ), timestamp(header)), processFrame( frame, debug=True )
+          print frameNumber( header ),  filterRectangles(processFrame( frame, debug=True ))
       header,payload = pave.extract()
     if cv2.waitKey(1) & 0xFF == ord('q'):
       break
