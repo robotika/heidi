@@ -104,7 +104,8 @@ def competeAirRace( drone, desiredSpeed = 1.5, desiredHeight = 1.5 ):
         lastUpdate = drone.time
         # temporary workaround for log files without (frameNumber, timestamp)
         if len( drone.lastImageResult ) == 2 and len( drone.lastImageResult[0] ) == 2:
-          indexStamp, lastRect = drone.lastImageResult
+          (frameNumber, timestamp), lastRect = drone.lastImageResult
+          viewlog.dumpCamera( "tmp_%04d.jpg" % frameNumber, 0 )
         else:
           lastRect = drone.lastImageResult
         if len(lastRect) > 0:

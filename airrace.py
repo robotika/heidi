@@ -119,7 +119,7 @@ def testPaVEVideo( filename ):
         assert ret
         if ret:
           global g_filename
-          g_filename = "tmp_%03d.jpg" % (frameNumber( header ))
+          g_filename = "tmp_%04d.jpg" % (frameNumber( header ))
 #          print (frameNumber( header ), timestamp(header)), processFrame( frame, debug=True )
           print frameNumber( header ),  filterRectangles(processFrame( frame, debug=True ))
       header,payload = pave.extract()
