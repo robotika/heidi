@@ -108,9 +108,10 @@ def competeAirRace( drone, desiredSpeed = 1.5, desiredHeight = 1.5 ):
           viewlog.dumpCamera( "tmp_%04d.jpg" % frameNumber, 0 )
         else:
           lastRect = drone.lastImageResult
+          frameNumber, timestamp = 0, 0
         if len(lastRect) > 0:
           angle = lastRect[0][2]
-          print angle
+          print angle, drone.time - timestamp/1000. + 4095.742703 # it seems constant? What the hell?! should be 4096?
           rects = filterRectangles( lastRect )
           if len(rects) > 0:
             pose = stripPose( rects[0] )
@@ -130,6 +131,8 @@ def competeAirRace( drone, desiredSpeed = 1.5, desiredHeight = 1.5 ):
             for r in rects:
               coord = getCombinedPose( (drone.coord[0], drone.coord[1], drone.heading), stripPose( r ) )
               viewlog.dumpBeacon( (coord[0], coord[1]), index=3 )
+              viewlog.dumpObstacles( [[(coord[0]-0.15*math.cos(coord[2]), coord[1]-0.15*math.sin(coord[2])), 
+                                       (coord[0]+0.15*math.cos(coord[2]), coord[1]+0.15*math.sin(coord[2]))]] )
       if lastUpdate == None or drone.time > lastUpdate + 0.7:
         drone.update("AT*PCMD=%i,0,0,0,0,0\r") # drone.hover(0.1)
       else:
