@@ -9,7 +9,7 @@ import datetime
 import multiprocessing
 import cv2
 import math
-from pave import PaVE, isIFrame, frameNumber, timestamp
+from pave import PaVE, isIFrame, frameNumber, timestamp, correctTimePeriod
 from airrace import processFrame, filterRectangles, stripPose
 from sourcelogger import SourceLogger
 from ardrone2 import ARDrone2, ManualControlException, manualControl
@@ -111,7 +111,8 @@ def competeAirRace( drone, desiredSpeed = 1.5, desiredHeight = 1.5 ):
           frameNumber, timestamp = 0, 0
         if len(lastRect) > 0:
           angle = lastRect[0][2]
-          print angle, drone.time - timestamp/1000. + 4095.742703 # it seems constant? What the hell?! should be 4096?
+          videoTime = correctTimePeriod( timestamp/1000., ref=drone.time )
+          print angle, drone.time - videoTime
           rects = filterRectangles( lastRect )
           if len(rects) > 0:
             pose = stripPose( rects[0] )

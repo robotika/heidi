@@ -45,6 +45,14 @@ def frameNumber( header ):
 def timestamp( header ):
   return struct.unpack_from("I", header, 24)[0]
 
+def correctTimePeriod( value, ref, period=2048 ):
+  "align drone time with video time"
+  dt = value-ref
+  while dt <= -period/2:
+    dt += period
+  while dt > period/2:
+    dt -= period
+  return ref+dt
 
 if __name__ == "__main__":
   if len(sys.argv) < 3:

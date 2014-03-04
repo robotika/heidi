@@ -49,6 +49,9 @@ class PaVETest( unittest.TestCase ):
     self.assertEqual( p.extract(), (h1,s1) )
     self.assertEqual( p.extract(), (h2,s2) )
 
+  def testCorrectTimePeriod( self ):
+    self.assertAlmostEqual( correctTimePeriod( 0.0, ref=0.0 ), 0.0, 5 )
+    self.assertAlmostEqual( correctTimePeriod( 7806.415, ref=1662.753082 ), 1662.753082-0.338082, 5 )
 
 if __name__ == "__main__":
   unittest.main() 
