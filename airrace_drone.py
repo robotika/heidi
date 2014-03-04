@@ -81,7 +81,11 @@ def competeAirRace( drone, desiredSpeed = 1.5, desiredHeight = 1.5 ):
     drone.wait(1.0)
     drone.setVideoChannel( front=False )    
     drone.takeoff()
-    drone.hover(1.0)
+    poseHistory = []
+    startTime = drone.time
+    while drone.time < startTime + 1.0:
+      drone.update("AT*PCMD=%i,0,0,0,0,0\r") # drone.hover(1.0)
+      poseHistory.append( (drone.time, (drone.coord[0], drone.coord[1], drone.heading)) )
     print "NAVI-ON"
     startTime = drone.time
     sx,sy,sz,sa = 0,0,0,0
@@ -129,8 +133,15 @@ def competeAirRace( drone, desiredSpeed = 1.5, desiredHeight = 1.5 ):
               sy = -0.05
             else:
               sy = 0.0
+            toDel = 0
+            for oldTime, oldPose in poseHistory:
+              toDel += 1
+              if oldTime >= videoTime:
+                break
+            poseHistory = poseHistory[:toDel] # keep history small
+
             for r in rects:
-              coord = getCombinedPose( (drone.coord[0], drone.coord[1], drone.heading), stripPose( r ) )
+              coord = getCombinedPose( oldPose, stripPose( r ) )
               viewlog.dumpBeacon( (coord[0], coord[1]), index=3 )
               viewlog.dumpObstacles( [[(coord[0]-0.15*math.cos(coord[2]), coord[1]-0.15*math.sin(coord[2])), 
                                        (coord[0]+0.15*math.cos(coord[2]), coord[1]+0.15*math.sin(coord[2]))]] )
@@ -138,6 +149,7 @@ def competeAirRace( drone, desiredSpeed = 1.5, desiredHeight = 1.5 ):
         drone.update("AT*PCMD=%i,0,0,0,0,0\r") # drone.hover(0.1)
       else:
         drone.moveXYZA( sx, sy, sz, sa )
+      poseHistory.append( (drone.time, (drone.coord[0], drone.coord[1], drone.heading)) )
     print "NAVI-OFF"
     drone.hover(0.5)
     drone.land()
