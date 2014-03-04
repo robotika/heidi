@@ -10,7 +10,8 @@ import multiprocessing
 import cv2
 import math
 from pave import PaVE, isIFrame, frameNumber, timestamp, correctTimePeriod
-from airrace import processFrame, filterRectangles, stripPose
+from airrace import processFrame, filterRectangles, stripPose, classifyPath
+from airrace import PATH_UNKNOWN, PATH_STRAIGHT, PATH_CROSSING, PATH_TURN_LEFT, PATH_TURN_RIGHT
 from sourcelogger import SourceLogger
 from ardrone2 import ARDrone2, ManualControlException, manualControl
 import viewlog
@@ -75,8 +76,8 @@ class AirRaceDrone( ARDrone2 ):
       self.lastImageResult = self.loggedVideoResult()
 
 
-def competeAirRace( drone, desiredSpeed = 1.5, desiredHeight = 1.5 ):
-  drone.speed = 0.05
+def competeAirRace( drone, desiredSpeed = 0.5, desiredHeight = 1.5 ):
+  drone.speed = 0.1
   try:
     drone.wait(1.0)
     drone.setVideoChannel( front=False )    
@@ -85,8 +86,10 @@ def competeAirRace( drone, desiredSpeed = 1.5, desiredHeight = 1.5 ):
     startTime = drone.time
     while drone.time < startTime + 1.0:
       drone.update("AT*PCMD=%i,0,0,0,0,0\r") # drone.hover(1.0)
-      poseHistory.append( (drone.time, (drone.coord[0], drone.coord[1], drone.heading)) )
+      poseHistory.append( (drone.time, (drone.coord[0], drone.coord[1], drone.heading), (drone.angleFB, drone.angleLR)) )
     print "NAVI-ON"
+    pathType = PATH_TURN_LEFT
+    hover = False
     startTime = drone.time
     sx,sy,sz,sa = 0,0,0,0
     lastUpdate = None
@@ -116,11 +119,22 @@ def competeAirRace( drone, desiredSpeed = 1.5, desiredHeight = 1.5 ):
         if len(lastRect) > 0:
           angle = lastRect[0][2]
           videoTime = correctTimePeriod( timestamp/1000., ref=drone.time )
-          print angle, drone.time - videoTime
+#          print angle, drone.time - videoTime
           rects = filterRectangles( lastRect )
-          if len(rects) > 0:
+          cp = classifyPath( [stripPose(r) for r in rects] )
+          hover = False
+          if cp != PATH_UNKNOWN:
+            if pathType != PATH_UNKNOWN:
+              if pathType != cp:
+                print "TRANS", pathType, "->", cp
+                hover = True
+            pathType = cp
+          if pathType in [PATH_TURN_LEFT, PATH_TURN_RIGHT]:
+            hover = True # it is simpler to turn angles with hover command
+
+          if len(rects) > 0 and cp != PATH_CROSSING:
             pose = stripPose( rects[0] )
-            print pose, "(%.2f %.2f %.2f)" % drone.coord, " heading=%.1f" % math.degrees(drone.heading)
+#            print pose, "(%.2f %.2f %.2f)" % drone.coord, " heading=%.1f" % math.degrees(drone.heading)
             if pose[2] > math.radians(15): # angle
               sa = 0.1
             elif pose[2] < -math.radians(15):
@@ -134,10 +148,11 @@ def competeAirRace( drone, desiredSpeed = 1.5, desiredHeight = 1.5 ):
             else:
               sy = 0.0
             toDel = 0
-            for oldTime, oldPose in poseHistory:
+            for oldTime, oldPose, oldAngles in poseHistory:
               toDel += 1
               if oldTime >= videoTime:
                 break
+#            print [int(math.degrees(x)) for x in oldAngles]
             poseHistory = poseHistory[:toDel] # keep history small
 
             for r in rects:
@@ -146,10 +161,13 @@ def competeAirRace( drone, desiredSpeed = 1.5, desiredHeight = 1.5 ):
               viewlog.dumpObstacles( [[(coord[0]-0.15*math.cos(coord[2]), coord[1]-0.15*math.sin(coord[2])), 
                                        (coord[0]+0.15*math.cos(coord[2]), coord[1]+0.15*math.sin(coord[2]))]] )
       if lastUpdate == None or drone.time > lastUpdate + 0.7:
-        drone.update("AT*PCMD=%i,0,0,0,0,0\r") # drone.hover(0.1)
+        if hover:
+          drone.update("AT*PCMD=%i,0,0,0,0,0\r") # drone.hover(0.1)
+        else:
+          drone.moveXYZA( sx, -sy/4., 0, 0 )
       else:
         drone.moveXYZA( sx, sy, sz, sa )
-      poseHistory.append( (drone.time, (drone.coord[0], drone.coord[1], drone.heading)) )
+      poseHistory.append( (drone.time, (drone.coord[0], drone.coord[1], drone.heading), (drone.angleFB, drone.angleLR)) )
     print "NAVI-OFF"
     drone.hover(0.5)
     drone.land()
