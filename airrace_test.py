@@ -16,6 +16,11 @@ class AirRaceTest( unittest.TestCase ):
     self.assertEqual( stripPose( ((223, 440), (319, 60), -88) ), (s*(720/2-440), s*(-223+1280/2), math.radians(-2)) )
     self.assertEqual( stripPose( ((298, 508), (319, 58), 75) ), (s*(720/2-508), s*(-298+1280/2), math.radians(15)) )
 
+  def testZScalingBug( self ):
+    sWidth = 0.3/189.
+    s = 0.05/53.
+    self.assertEqual( stripPose( ((898, 257), (189, 53), -58) ), (s*(720/2-257), s*(-898+1280/2), math.radians(-32)) )
+
   def testClassifyPath( self ):
     self.assertEqual( classifyPath( [(0,0,0)] ), PATH_UNKNOWN )
     self.assertEqual( classifyPath( [(0,0,0), (0.3,0,0),] ), PATH_STRAIGHT )

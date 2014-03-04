@@ -58,7 +58,10 @@ def stripPose( rect ):
     a -= 180
   if a < -90:
     a += 180
-  scale = 0.3/float(w)
+  if w >= 5*h: # it should be 6x, but width is more precise
+    scale = 0.3/float(w)
+  else:
+    scale = 0.05/float(h)
   return scale*(720/2-y), scale*(1280/2-x), math.radians( a )
 
 PATH_UNKNOWN = 0
