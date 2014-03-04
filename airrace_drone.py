@@ -127,7 +127,8 @@ def competeAirRace( drone, desiredSpeed = 0.5, desiredHeight = 1.5 ):
             if pathType != PATH_UNKNOWN:
               if pathType != cp:
                 print "TRANS", pathType, "->", cp
-                hover = True
+                if cp != PATH_CROSSING:
+                  hover = True
             pathType = cp
           if pathType in [PATH_TURN_LEFT, PATH_TURN_RIGHT]:
             hover = True # it is simpler to turn angles with hover command
@@ -141,6 +142,12 @@ def competeAirRace( drone, desiredSpeed = 0.5, desiredHeight = 1.5 ):
               sa = -0.1
             else:
               sa = 0.0
+            # compensate turns
+#            if pathType == PATH_TURN_LEFT:
+#              sa += 0.15
+#            elif pathType == PATH_TURN_RIGHT:
+#              sa -= 0.15
+
             if pose[1] > 0.1: # Y
               sy = 0.05
             elif pose[1] < -0.1:
