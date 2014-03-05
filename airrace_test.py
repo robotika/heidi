@@ -40,8 +40,9 @@ class AirRaceTest( unittest.TestCase ):
 
     poses = [stripPose(rec) for rec in [((473, 616), (187, 36), -79), ((562, 356), (206, 36), -63), ((717, 124), (211, 37), -48)]] # 1110
     self.assertEqual( classifyPath( poses ), PATH_TURN_RIGHT )
-    # TODO PATH_TURN_LEFT ... no real test data available
 
+    poses = [stripPose(rec) for rec in [((532, 608), (203, 49), 68), ((337, 268), (279, 50), 53)]] # 330 src_cv2_140304_191305.log
+    self.assertEqual( classifyPath( poses ), PATH_TURN_LEFT )
 
 if __name__ == "__main__":
   unittest.main() 
