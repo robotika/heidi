@@ -135,7 +135,7 @@ def competeAirRace( drone, desiredSpeed = 0.5, desiredHeight = 1.5 ):
 
           if len(rects) > 0 and cp != PATH_CROSSING:
             pose = stripPose( rects[0] )
-#            print pose, "(%.2f %.2f %.2f)" % drone.coord, " heading=%.1f" % math.degrees(drone.heading)
+            print cp, frameNumber, "%.1f %d" % (pose[1], int(math.degrees(pose[2])))
             if pose[2] > math.radians(15): # angle
               sa = 0.1
             elif pose[2] < -math.radians(15):

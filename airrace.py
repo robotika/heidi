@@ -64,11 +64,11 @@ def stripPose( rect ):
     scale = 0.05/float(h)
   return scale*(720/2-y), scale*(1280/2-x), math.radians( a )
 
-PATH_UNKNOWN = 0
-PATH_STRAIGHT = 1
-PATH_CROSSING = 2
-PATH_TURN_RIGHT = 3
-PATH_TURN_LEFT = 4
+PATH_UNKNOWN = '?'
+PATH_STRAIGHT = 'I'
+PATH_CROSSING = 'X'
+PATH_TURN_RIGHT = 'R'
+PATH_TURN_LEFT = 'L'
 
 def classifyPath( poses ):
   if len(poses) < 2:
