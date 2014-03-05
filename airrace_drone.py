@@ -17,6 +17,8 @@ from ardrone2 import ARDrone2, ManualControlException, manualControl
 import viewlog
 from viewer import getCombinedPose # TODO refactoring
 
+REF_CIRCLE_RADIUS = 1.5 # TODO measure in real arena!
+
 def timeName( prefix, ext ):
   dt = datetime.datetime.now()
   filename = prefix + dt.strftime("%y%m%d_%H%M%S.") + ext
@@ -89,6 +91,9 @@ def competeAirRace( drone, desiredSpeed = 0.5, desiredHeight = 1.5 ):
       poseHistory.append( (drone.time, (drone.coord[0], drone.coord[1], drone.heading), (drone.angleFB, drone.angleLR)) )
     print "NAVI-ON"
     pathType = PATH_TURN_LEFT
+    refCircle = None
+    refLine = None
+    lastPrint = None
     hover = False
     startTime = drone.time
     sx,sy,sz,sa = 0,0,0,0
@@ -163,10 +168,22 @@ def competeAirRace( drone, desiredSpeed = 0.5, desiredHeight = 1.5 ):
             poseHistory = poseHistory[:toDel] # keep history small
 
             for r in rects:
-              coord = getCombinedPose( oldPose, stripPose( r ) )
-              viewlog.dumpBeacon( (coord[0], coord[1]), index=3 )
-              viewlog.dumpObstacles( [[(coord[0]-0.15*math.cos(coord[2]), coord[1]-0.15*math.sin(coord[2])), 
-                                       (coord[0]+0.15*math.cos(coord[2]), coord[1]+0.15*math.sin(coord[2]))]] )
+              sPose = getCombinedPose( oldPose, stripPose( r ) )
+              if pathType == PATH_TURN_LEFT:
+                circPose = getCombinedPose( sPose, (0.0, REF_CIRCLE_RADIUS, math.radians(90) ))
+                viewlog.dumpBeacon( (circPose[0], circPose[1]), index=0 )
+                refCircle = (circPose[0], circPose[1]), REF_CIRCLE_RADIUS
+              viewlog.dumpBeacon( (sPose[0], sPose[1]), index=3 )
+              viewlog.dumpObstacles( [[(sPose[0]-0.15*math.cos(sPose[2]), sPose[1]-0.15*math.sin(sPose[2])), 
+                                       (sPose[0]+0.15*math.cos(sPose[2]), sPose[1]+0.15*math.sin(sPose[2]))]] )
+
+      if refCircle:
+        if lastPrint == None or drone.time > lastPrint + 0.5:
+          # only limit number of text outputs
+          print "CIRC", math.hypot( drone.coord[0]-refCircle[0][0], drone.coord[1]-refCircle[0][1] ) - refCircle[1]
+          lastPrint = drone.time
+
+
       if lastUpdate == None or drone.time > lastUpdate + 0.7:
         if hover:
           drone.update("AT*PCMD=%i,0,0,0,0,0\r") # drone.hover(0.1)
