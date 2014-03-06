@@ -44,6 +44,12 @@ class AirRaceTest( unittest.TestCase ):
     poses = [stripPose(rec) for rec in [((532, 608), (203, 49), 68), ((337, 268), (279, 50), 53)]] # 330 src_cv2_140304_191305.log
     self.assertEqual( classifyPath( poses ), PATH_TURN_LEFT )
 
+  def testClassifyPathBug( self ):
+    # video_rec_140306_175854.bin
+    # frame 630, mixed frames - too wide -> almost straight
+    poses = [stripPose(rec) for rec in [((670, 526), (182, 32), 82), ((660, 282), (201, 43), 90)]]
+    self.assertEqual( classifyPath( poses ), PATH_STRAIGHT )
+
 if __name__ == "__main__":
   unittest.main() 
 

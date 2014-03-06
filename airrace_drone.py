@@ -17,7 +17,7 @@ from ardrone2 import ARDrone2, ManualControlException, manualControl, normalizeA
 import viewlog
 from viewer import getCombinedPose # TODO refactoring
 
-REF_CIRCLE_RADIUS = 1.5 # TODO measure in real arena!
+REF_CIRCLE_RADIUS = 1.4 # TODO measure in real arena!
 
 def timeName( prefix, ext ):
   dt = datetime.datetime.now()
@@ -168,10 +168,10 @@ def competeAirRace( drone, desiredSpeed = 0.5, desiredHeight = 1.5 ):
 
       # error correction
       # the goal is to have errY and errA zero in 1 second -> errY defines desired speed at given distance from path
-      sy = max( -0.2, min( 0.2, -errY-drone.vy ))
+      sy = max( -0.2, min( 0.2, -errY-drone.vy ))/2.0
       
       # there is no drone.va (i.e. derivative of heading) available at the moment ... 
-      sa = max( -0.1, min( 0.1, -errA/2.0 ))
+      sa = max( -0.1, min( 0.1, -errA/2.0 ))*1.2
 
 #      print "%0.2f\t%d\t%0.2f\t%0.2f\t%0.2f" % (errY, int(math.degrees(errA)), drone.vy, sy, sa)
       drone.moveXYZA( sx, sy, sz, sa )
