@@ -395,9 +395,9 @@ class ARDrone2:
             self.headingOffset = math.radians(90.0) # used to be "math.radians(v['psi']/1000.)" but first data are not sufficiently reliable
           self.heading = self.headingOffset - math.radians(v['psi']/1000.)
           self.vx = v['vx']/1000.0
-          self.vy = v['vy']/1000.0
+          self.vy = -v['vy']/1000.0
           dx = self.dt * self.vx
-          dy = -self.dt * self.vy
+          dy = self.dt * self.vy
           c = math.cos(self.heading)
           s = math.sin(self.heading)
           self.coord = (self.coord[0]+c*dx-s*dy, self.coord[1]+s*dx+c*dy, v['altitude']/1000.0)

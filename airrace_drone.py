@@ -13,7 +13,7 @@ from pave import PaVE, isIFrame, frameNumber, timestamp, correctTimePeriod
 from airrace import processFrame, filterRectangles, stripPose, classifyPath
 from airrace import PATH_UNKNOWN, PATH_STRAIGHT, PATH_CROSSING, PATH_TURN_LEFT, PATH_TURN_RIGHT
 from sourcelogger import SourceLogger
-from ardrone2 import ARDrone2, ManualControlException, manualControl
+from ardrone2 import ARDrone2, ManualControlException, manualControl, normalizeAnglePIPI
 import viewlog
 from viewer import getCombinedPose # TODO refactoring
 
@@ -93,8 +93,6 @@ def competeAirRace( drone, desiredSpeed = 0.5, desiredHeight = 1.5 ):
     pathType = PATH_TURN_LEFT
     refCircle = None
     refLine = None
-    lastPrint = None
-    hover = False
     startTime = drone.time
     sx,sy,sz,sa = 0,0,0,0
     lastUpdate = None
@@ -114,83 +112,69 @@ def competeAirRace( drone, desiredSpeed = 0.5, desiredHeight = 1.5 ):
 
       if drone.lastImageResult:
         lastUpdate = drone.time
-        # temporary workaround for log files without (frameNumber, timestamp)
-        if len( drone.lastImageResult ) == 2 and len( drone.lastImageResult[0] ) == 2:
-          (frameNumber, timestamp), lastRect = drone.lastImageResult
-          viewlog.dumpCamera( "tmp_%04d.jpg" % frameNumber, 0 )
-        else:
-          lastRect = drone.lastImageResult
-          frameNumber, timestamp = 0, 0
-        if len(lastRect) > 0:
-          angle = lastRect[0][2]
-          videoTime = correctTimePeriod( timestamp/1000., ref=drone.time )
-#          print angle, drone.time - videoTime
-          rects = filterRectangles( lastRect )
-          cp = classifyPath( [stripPose(r) for r in rects] )
-          hover = False
-          if cp != PATH_UNKNOWN:
-            if pathType != PATH_UNKNOWN:
-              if pathType != cp:
-                print "TRANS", pathType, "->", cp
-                if cp != PATH_CROSSING:
-                  hover = True
-            pathType = cp
-          if pathType in [PATH_TURN_LEFT, PATH_TURN_RIGHT]:
-            hover = True # it is simpler to turn angles with hover command
+        assert len( drone.lastImageResult ) == 2 and len( drone.lastImageResult[0] ) == 2, drone.lastImageResult
+        (frameNumber, timestamp), lastRect = drone.lastImageResult
+        viewlog.dumpCamera( "tmp_%04d.jpg" % frameNumber, 0 )
 
-          if len(rects) > 0 and cp != PATH_CROSSING:
-            pose = stripPose( rects[0] )
-            print cp, frameNumber, "%.1f %d" % (pose[1], int(math.degrees(pose[2])))
-            if pose[2] > math.radians(15): # angle
-              sa = 0.1
-            elif pose[2] < -math.radians(15):
-              sa = -0.1
-            else:
-              sa = 0.0
-            # compensate turns
-#            if pathType == PATH_TURN_LEFT:
-#              sa += 0.15
-#            elif pathType == PATH_TURN_RIGHT:
-#              sa -= 0.15
+        rects = filterRectangles( lastRect )
+        cp = classifyPath( [stripPose(r) for r in rects] )
+        if cp != PATH_UNKNOWN:
+          if pathType != cp:
+            print "TRANS", pathType, "->", cp
+          pathType = cp
+        print "FRAME", frameNumber, cp, pathType
 
-            if pose[1] > 0.1: # Y
-              sy = 0.05
-            elif pose[1] < -0.1:
-              sy = -0.05
-            else:
-              sy = 0.0
-            toDel = 0
-            for oldTime, oldPose, oldAngles in poseHistory:
-              toDel += 1
-              if oldTime >= videoTime:
-                break
-#            print [int(math.degrees(x)) for x in oldAngles]
-            poseHistory = poseHistory[:toDel] # keep history small
+        # keep history small
+        videoTime = correctTimePeriod( timestamp/1000., ref=drone.time )
+        toDel = 0
+        for oldTime, oldPose, oldAngles in poseHistory:
+          toDel += 1
+          if oldTime >= videoTime:
+            break
+        poseHistory = poseHistory[:toDel]
 
-            for r in rects:
-              sPose = getCombinedPose( oldPose, stripPose( r ) )
-              if pathType == PATH_TURN_LEFT:
-                circPose = getCombinedPose( sPose, (0.0, REF_CIRCLE_RADIUS, math.radians(90) ))
-                viewlog.dumpBeacon( (circPose[0], circPose[1]), index=0 )
-                refCircle = (circPose[0], circPose[1]), REF_CIRCLE_RADIUS
-              viewlog.dumpBeacon( (sPose[0], sPose[1]), index=3 )
-              viewlog.dumpObstacles( [[(sPose[0]-0.15*math.cos(sPose[2]), sPose[1]-0.15*math.sin(sPose[2])), 
+        for r in rects:
+          sPose = getCombinedPose( oldPose, stripPose( r ) )
+          if pathType == PATH_TURN_LEFT:
+            circPose = getCombinedPose( sPose, (0.0, REF_CIRCLE_RADIUS, 0 ))
+            viewlog.dumpBeacon( (circPose[0], circPose[1]), index=0 )
+            refCircle = (circPose[0], circPose[1]), REF_CIRCLE_RADIUS
+          elif pathType == PATH_TURN_RIGHT:
+            circPose = getCombinedPose( sPose, (0.0, -REF_CIRCLE_RADIUS, 0 ))
+            viewlog.dumpBeacon( (circPose[0], circPose[1]), index=1 )
+            refCircle = (circPose[0], circPose[1]), REF_CIRCLE_RADIUS
+          else:
+            refCircle = None
+          viewlog.dumpBeacon( (sPose[0], sPose[1]), index=3 )
+          viewlog.dumpObstacles( [[(sPose[0]-0.15*math.cos(sPose[2]), sPose[1]-0.15*math.sin(sPose[2])), 
                                        (sPose[0]+0.15*math.cos(sPose[2]), sPose[1]+0.15*math.sin(sPose[2]))]] )
 
+      # error definition ... if you substract that you get desired position or angle
+      # error is taken from the path point of view, x-path direction, y-positive left, angle-anticlockwise
+      errY, errA = 0.0, 0.0
       if refCircle:
-        if lastPrint == None or drone.time > lastPrint + 0.5:
-          # only limit number of text outputs
-          print "CIRC", math.hypot( drone.coord[0]-refCircle[0][0], drone.coord[1]-refCircle[0][1] ) - refCircle[1]
-          lastPrint = drone.time
+        if pathType == PATH_TURN_LEFT:
+          errY = refCircle[1] - math.hypot( drone.coord[0]-refCircle[0][0], drone.coord[1]-refCircle[0][1] )
+          errA = normalizeAnglePIPI( - math.atan2( refCircle[0][1] - drone.coord[1], refCircle[0][0] - drone.coord[0] ) 
+                                      - math.radians(-90) + drone.heading )
+        if pathType == PATH_TURN_RIGHT:
+          errY = math.hypot( drone.coord[0]-refCircle[0][0], drone.coord[1]-refCircle[0][1] ) - refCircle[1]
+          errA = normalizeAnglePIPI( math.atan2( refCircle[0][1] - drone.coord[1], refCircle[0][0] - drone.coord[0] ) 
+                                      + math.radians(-90) - drone.heading )
 
+      # now we test turns only -> land at the end of turn
+      if pathType not in [PATH_TURN_LEFT, PATH_TURN_RIGHT]:
+        break
 
-      if lastUpdate == None or drone.time > lastUpdate + 0.7:
-        if hover:
-          drone.update("AT*PCMD=%i,0,0,0,0,0\r") # drone.hover(0.1)
-        else:
-          drone.moveXYZA( sx, -sy/4., 0, 0 )
-      else:
-        drone.moveXYZA( sx, sy, sz, sa )
+      # error correction
+      # the goal is to have errY and errA zero in 1 second -> errY defines desired speed at given distance from path
+      sy = max( -0.2, min( 0.2, -errY-drone.vy ))
+      
+      # there is no drone.va (i.e. derivative of heading) available at the moment ... 
+      sa = max( -0.1, min( 0.1, -errA/2.0 ))
+
+#      print "%0.2f\t%d\t%0.2f\t%0.2f\t%0.2f" % (errY, int(math.degrees(errA)), drone.vy, sy, sa)
+      drone.moveXYZA( sx, sy, sz, sa )
       poseHistory.append( (drone.time, (drone.coord[0], drone.coord[1], drone.heading), (drone.angleFB, drone.angleLR)) )
     print "NAVI-OFF"
     drone.hover(0.5)
