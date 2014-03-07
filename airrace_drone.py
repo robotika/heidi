@@ -16,8 +16,10 @@ from sourcelogger import SourceLogger
 from ardrone2 import ARDrone2, ManualControlException, manualControl, normalizeAnglePIPI
 import viewlog
 from viewer import getCombinedPose # TODO refactoring
+from line import Line
 
 REF_CIRCLE_RADIUS = 1.4 # TODO measure in real arena!
+REF_LINE_CROSSING_ANGLE = math.radians(50) # angle for selection of proper strip
 
 def timeName( prefix, ext ):
   dt = datetime.datetime.now()
@@ -90,7 +92,7 @@ def competeAirRace( drone, desiredSpeed = 0.5, desiredHeight = 1.5 ):
       drone.update("AT*PCMD=%i,0,0,0,0,0\r") # drone.hover(1.0)
       poseHistory.append( (drone.time, (drone.coord[0], drone.coord[1], drone.heading), (drone.angleFB, drone.angleLR)) )
     print "NAVI-ON"
-    pathType = PATH_TURN_LEFT
+    pathType = PATH_STRAIGHT
     refCircle = None
     refLine = None
     startTime = drone.time
@@ -122,6 +124,9 @@ def competeAirRace( drone, desiredSpeed = 0.5, desiredHeight = 1.5 ):
           if pathType != cp:
             print "TRANS", pathType, "->", cp
           pathType = cp
+          if pathType == PATH_CROSSING:
+            # it is necessary to filter straight segments anyway (i.e. only bad side strip can be detected)
+            pathType = PATH_STRAIGHT
         print "FRAME", frameNumber, cp, pathType
 
         # keep history small
@@ -145,6 +150,12 @@ def competeAirRace( drone, desiredSpeed = 0.5, desiredHeight = 1.5 ):
             refCircle = (circPose[0], circPose[1]), REF_CIRCLE_RADIUS
           else:
             refCircle = None
+          if pathType == PATH_STRAIGHT:
+            if refLine == None or normalizeAnglePIPI( refLine.angle - sPose[2] ) < REF_LINE_CROSSING_ANGLE:
+              refLine = Line( (sPose[0]-0.15*math.cos(sPose[2]), sPose[1]-0.15*math.sin(sPose[2])), 
+                                       (sPose[0]+0.15*math.cos(sPose[2]), sPose[1]+0.15*math.sin(sPose[2])) )
+          else:
+            refLine = None
           viewlog.dumpBeacon( (sPose[0], sPose[1]), index=3 )
           viewlog.dumpObstacles( [[(sPose[0]-0.15*math.cos(sPose[2]), sPose[1]-0.15*math.sin(sPose[2])), 
                                        (sPose[0]+0.15*math.cos(sPose[2]), sPose[1]+0.15*math.sin(sPose[2]))]] )
@@ -152,6 +163,7 @@ def competeAirRace( drone, desiredSpeed = 0.5, desiredHeight = 1.5 ):
       # error definition ... if you substract that you get desired position or angle
       # error is taken from the path point of view, x-path direction, y-positive left, angle-anticlockwise
       errY, errA = 0.0, 0.0
+      assert refCircle == None or refLine == None # they cannot be both active at the same time
       if refCircle:
         if pathType == PATH_TURN_LEFT:
           errY = refCircle[1] - math.hypot( drone.coord[0]-refCircle[0][0], drone.coord[1]-refCircle[0][1] )
@@ -161,9 +173,12 @@ def competeAirRace( drone, desiredSpeed = 0.5, desiredHeight = 1.5 ):
           errY = math.hypot( drone.coord[0]-refCircle[0][0], drone.coord[1]-refCircle[0][1] ) - refCircle[1]
           errA = normalizeAnglePIPI( math.atan2( refCircle[0][1] - drone.coord[1], refCircle[0][0] - drone.coord[0] ) 
                                       + math.radians(-90) - drone.heading )
+      if refLine:
+        errY = refLine.signedDistance( drone.coord )
+        errA = normalizeAnglePIPI( drone.heading - refLine.angle )
 
       # now we test turns only -> land at the end of turn
-      if pathType not in [PATH_TURN_LEFT, PATH_TURN_RIGHT]:
+      if pathType in [PATH_TURN_LEFT, PATH_TURN_RIGHT]:
         break
 
       # error correction
@@ -176,7 +191,7 @@ def competeAirRace( drone, desiredSpeed = 0.5, desiredHeight = 1.5 ):
 #      print "%0.2f\t%d\t%0.2f\t%0.2f\t%0.2f" % (errY, int(math.degrees(errA)), drone.vy, sy, sa)
       drone.moveXYZA( sx, sy, sz, sa )
       poseHistory.append( (drone.time, (drone.coord[0], drone.coord[1], drone.heading), (drone.angleFB, drone.angleLR)) )
-    print "NAVI-OFF"
+    print "NAVI-OFF", drone.time - startTime
     drone.hover(0.5)
     drone.land()
     drone.setVideoChannel( front=True )    
