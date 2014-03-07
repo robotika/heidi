@@ -67,11 +67,7 @@ class AirRaceDrone( ARDrone2 ):
       self.startVideo( wrapper, g_queueResults, record=True )
     else:
       assert metaLog
-      for line in metaLog: # TODO refactoring
-        print "XXLINE", line.strip()
-        if line.startswith("cv2:"):
-          self.loggedVideoResult = SourceLogger( None, line.split()[1].strip() ).get
-          break
+      self.loggedVideoResult = SourceLogger( None, metaLog.getLog("cv2:") ).get
       self.startVideo( record=True )
 
   def update( self, cmd="AT*COMWDG=%i,\r" ):

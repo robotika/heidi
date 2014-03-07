@@ -7,6 +7,7 @@
 import datetime
 import viewlog
 import ardrone2
+from metalog import MetaLog
 
 # only as wrapper for kbhit
 import sys
@@ -50,11 +51,8 @@ def launch(cmd_args, robotFactory, task, configFn = None, canArgs={}):
   console = None
   if len(cmd_args) > 2:
     if "meta" in cmd_args[2]:
-      metaLog = open(cmd_args[2])
-      for line in metaLog:
-        if line.startswith("navdata:"):
-          replayLog = line.split()[1].strip()
-          break
+      metaLog = MetaLog( cmd_args[2] )
+      replayLog = metaLog.getLog( "navdata:" )
     else:
       replayLog=cmd_args[2]
     viewlog.viewLogFile = open( "view.log", "w" )

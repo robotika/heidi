@@ -122,11 +122,8 @@ class MyLogs:
     self.atcmd = None # default without checking
     print "METALOG", metaLog
     if metaLog:
-      for line in metaLog:
-        print "LINE", line.strip()
-        if line.startswith("atcmd:"):
-          self.atcmd = open( line.split()[1].strip(), "rb" )
-          break
+      self.atcmd = open( metaLog.getLog("atcmd:"), "rb" )
+
   def update( self, cmd ):
     "send command and return navdata"
     # ignore cmd for the moment
@@ -183,11 +180,7 @@ class ARDrone2:
 #          if line.startswith("sonar:"):
 #            self.sonarUpdate = SourceLogger( None, line.split()[1].strip() ).get
 #            break
-        for line in metaLog:
-          print "LINE", line.strip()
-          if line.startswith("console:"):
-            self.console = SourceLogger( None, line.split()[1].strip() ).get
-            break
+        self.console = SourceLogger( None, metaLog.getLog("console:") ).get
     else:
       self.filename = datetime.datetime.now().strftime("logs/navdata_%y%m%d_%H%M%S.log.gz")
       self.io = MySockets( self.filename, metaLog=metaLog )
