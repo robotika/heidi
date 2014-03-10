@@ -88,7 +88,7 @@ def competeAirRace( drone, desiredSpeed = 0.5, desiredHeight = 1.5 ):
       drone.update("AT*PCMD=%i,0,0,0,0,0\r") # drone.hover(1.0)
       poseHistory.append( (drone.time, (drone.coord[0], drone.coord[1], drone.heading), (drone.angleFB, drone.angleLR)) )
     print "NAVI-ON"
-    pathType = PATH_STRAIGHT
+    pathType = PATH_TURN_LEFT
     refCircle = None
     refLine = None
     startTime = drone.time
@@ -172,10 +172,6 @@ def competeAirRace( drone, desiredSpeed = 0.5, desiredHeight = 1.5 ):
       if refLine:
         errY = refLine.signedDistance( drone.coord )
         errA = normalizeAnglePIPI( drone.heading - refLine.angle )
-
-      # now we test turns only -> land at the end of turn
-      if pathType in [PATH_TURN_LEFT, PATH_TURN_RIGHT]:
-        break
 
       # error correction
       # the goal is to have errY and errA zero in 1 second -> errY defines desired speed at given distance from path
