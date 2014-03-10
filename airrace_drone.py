@@ -78,6 +78,8 @@ class AirRaceDrone( ARDrone2 ):
 
 def competeAirRace( drone, desiredSpeed = 0.5, desiredHeight = 1.5 ):
   drone.speed = 0.1
+  maxVideoDelay = 0.0
+  maxControlGap = 0.0
   try:
     drone.wait(1.0)
     drone.setVideoChannel( front=False )    
@@ -127,6 +129,7 @@ def competeAirRace( drone, desiredSpeed = 0.5, desiredHeight = 1.5 ):
 
         # keep history small
         videoTime = correctTimePeriod( timestamp/1000., ref=drone.time )
+        maxVideoDelay = max( drone.time - videoTime, maxVideoDelay )
         toDel = 0
         for oldTime, oldPose, oldAngles in poseHistory:
           toDel += 1
@@ -181,7 +184,9 @@ def competeAirRace( drone, desiredSpeed = 0.5, desiredHeight = 1.5 ):
       sa = max( -0.1, min( 0.1, -errA/2.0 ))*1.2
 
 #      print "%0.2f\t%d\t%0.2f\t%0.2f\t%0.2f" % (errY, int(math.degrees(errA)), drone.vy, sy, sa)
+      prevTime = drone.time
       drone.moveXYZA( sx, sy, sz, sa )
+      maxControlGap = max( drone.time - prevTime, maxControlGap )
       poseHistory.append( (drone.time, (drone.coord[0], drone.coord[1], drone.heading), (drone.angleFB, drone.angleLR)) )
     print "NAVI-OFF", drone.time - startTime
     drone.hover(0.5)
@@ -194,6 +199,8 @@ def competeAirRace( drone, desiredSpeed = 0.5, desiredHeight = 1.5 ):
     drone.land()
   drone.wait(1.0)
   drone.stopVideo()
+  print "MaxVideoDelay", maxVideoDelay
+  print "MaxControlGap", maxControlGap
 
 
 if __name__ == "__main__": 
