@@ -13,13 +13,15 @@ from pave import PaVE, isIFrame, frameNumber, timestamp, correctTimePeriod
 from airrace import processFrame, filterRectangles, stripPose, classifyPath
 from airrace import PATH_UNKNOWN, PATH_STRAIGHT, PATH_CROSSING, PATH_TURN_LEFT, PATH_TURN_RIGHT
 from sourcelogger import SourceLogger
-from ardrone2 import ARDrone2, ManualControlException, manualControl, normalizeAnglePIPI
+from ardrone2 import ARDrone2, ManualControlException, manualControl, normalizeAnglePIPI, distance
 import viewlog
 from viewer import getCombinedPose # TODO refactoring
 from line import Line
 
 REF_CIRCLE_RADIUS = 1.4 # TODO measure in real arena!
 REF_LINE_CROSSING_ANGLE = math.radians(50) # angle for selection of proper strip
+TRANSITION_RADIUS = 3.0 # TODO measure - distance from crossing to circle tangent point
+CROSSING_Y_COORD = 5.0 # TODO measure
 
 def timeName( prefix, ext ):
   dt = datetime.datetime.now()
@@ -80,6 +82,7 @@ def competeAirRace( drone, desiredSpeed = 0.5, desiredHeight = 1.5 ):
   drone.speed = 0.1
   maxVideoDelay = 0.0
   maxControlGap = 0.0
+  estCrossing = None
   try:
     drone.wait(1.0)
     drone.setVideoChannel( front=False )    
@@ -90,6 +93,8 @@ def competeAirRace( drone, desiredSpeed = 0.5, desiredHeight = 1.5 ):
       drone.update("AT*PCMD=%i,0,0,0,0,0\r") # drone.hover(1.0)
       poseHistory.append( (drone.time, (drone.coord[0], drone.coord[1], drone.heading), (drone.angleFB, drone.angleLR)) )
     print "NAVI-ON"
+    estCrossing = getCombinedPose( (drone.coord[0], drone.coord[1], drone.heading), (0.0, CROSSING_Y_COORD, 0.0) )[:2]
+    viewlog.dumpBeacon( estCrossing )
     pathType = PATH_TURN_LEFT
     refCircle = None
     refLine = None
@@ -137,6 +142,10 @@ def competeAirRace( drone, desiredSpeed = 0.5, desiredHeight = 1.5 ):
           if oldTime >= videoTime:
             break
         poseHistory = poseHistory[:toDel]
+        if estCrossing:
+          print "dist", distance( oldPose, estCrossing ) - TRANSITION_RADIUS
+          # TODO force switch to PATH_STRAIGHT for negative value
+          # TODO force switch to PATH_TURN_LEFT/RIGHT for positive value based on coordinate, CROSSING_Y_COORD
 
         for r in rects:
           sPose = getCombinedPose( oldPose, stripPose( r ) )
