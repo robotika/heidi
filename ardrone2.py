@@ -18,7 +18,7 @@ if sys.platform == 'win32':
 import viewlog
 from line import Line
 
-from navdata import parseTimeTag, parseDemoTag, parseVisionDetectTag, parseRawMeasuresTag, parseAltitudeTag
+from navdata import parseTimeTag, parseDemoTag, parseVisionDetectTag, parseRawMeasuresTag, parseAltitudeTag, parseMagnetoTag
 
 from multiprocessing import Process, Queue
 from video import logVideoStream
@@ -216,6 +216,8 @@ class ARDrone2:
     self.vx, self.vy = None, None # speed in XY-axis (expect refactoring)
     self.visionTag = []
     self.altitudeData = None
+    self.compass = None # single heading
+    self.magneto = None # whole array
     if not skipConfigure:
       self.configure()
     for i in xrange(20):
@@ -432,6 +434,11 @@ class ARDrone2:
 
         if tag == NAVDATA_ALTITUDE_TAG:
           self.altitudeData = parseAltitudeTag( data, offset )
+
+        if tag == NAVDATA_MAGNETO_TAG:
+          self.magneto = parseMagnetoTag( data, offset )
+          self.compass = math.radians(self.magneto[12])
+          viewlog.dumpCompass( self.compass )
         offset += size
 
 

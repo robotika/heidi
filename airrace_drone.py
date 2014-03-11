@@ -126,6 +126,7 @@ def competeAirRace( drone, desiredSpeed = 0.5, desiredHeight = 1.5 ):
             # it is necessary to filter straight segments anyway (i.e. only bad side strip can be detected)
             pathType = PATH_STRAIGHT
         print "FRAME", frameNumber, cp, pathType
+#        print drone.magneto[12:15]
 
         # keep history small
         videoTime = correctTimePeriod( timestamp/1000., ref=drone.time )
