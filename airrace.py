@@ -13,12 +13,19 @@ import numpy as np
 from pave import PaVE, isIFrame, frameNumber, timestamp
 
 g_filename = None
+g_mser = None
 
 def processFrame( frame, debug=False ):
   result = []
+  global g_mser
+#  if g_mser == None:
+#    g_mser = cv2.MSER( _delta = 10, _min_area=100, _max_area=300*50*2 )
   gray = cv2.cvtColor( frame, cv2.COLOR_BGR2GRAY )
-  ret, binary = cv2.threshold( gray, 0, 255, cv2.THRESH_OTSU )
-  contours, hierarchy = cv2.findContours( binary, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE )
+  if g_mser:
+    contours = g_mser.detect(gray, None)
+  else:
+    ret, binary = cv2.threshold( gray, 0, 255, cv2.THRESH_OTSU )
+    contours, hierarchy = cv2.findContours( binary, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE )
   for cnt in contours:
     area = cv2.contourArea(cnt)
     if area > 100 and area < 100000:
