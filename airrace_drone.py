@@ -20,8 +20,8 @@ from line import Line
 
 REF_CIRCLE_RADIUS = 1.4 # TODO measure in real arena!
 REF_LINE_CROSSING_ANGLE = math.radians(50) # angle for selection of proper strip
-TRANSITION_RADIUS = 3.0 # TODO measure - distance from crossing to circle tangent point
-CROSSING_Y_COORD = 5.0 # TODO measure
+TRANSITION_RADIUS = 2.15 # TODO measure - distance from crossing to circle tangent point
+CROSSING_Y_COORD = 1.4+2.45 # TODO measure
 
 def timeName( prefix, ext ):
   dt = datetime.datetime.now()
@@ -78,7 +78,7 @@ class AirRaceDrone( ARDrone2 ):
       self.lastImageResult = self.loggedVideoResult()
 
 
-def competeAirRace( drone, desiredSpeed = 0.5, desiredHeight = 1.5 ):
+def competeAirRace( drone, desiredSpeed = 0.3, desiredHeight = 1.5 ):
   drone.speed = 0.1
   maxVideoDelay = 0.0
   maxControlGap = 0.0
@@ -160,7 +160,7 @@ def competeAirRace( drone, desiredSpeed = 0.5, desiredHeight = 1.5 ):
           else:
             refCircle = None
           if pathType == PATH_STRAIGHT:
-            if refLine == None or normalizeAnglePIPI( refLine.angle - sPose[2] ) < REF_LINE_CROSSING_ANGLE:
+            if refLine == None or abs(normalizeAnglePIPI( refLine.angle - sPose[2] )) < REF_LINE_CROSSING_ANGLE:
               refLine = Line( (sPose[0]-0.15*math.cos(sPose[2]), sPose[1]-0.15*math.sin(sPose[2])), 
                                        (sPose[0]+0.15*math.cos(sPose[2]), sPose[1]+0.15*math.sin(sPose[2])) )
           else:
@@ -185,6 +185,9 @@ def competeAirRace( drone, desiredSpeed = 0.5, desiredHeight = 1.5 ):
       if refLine:
         errY = refLine.signedDistance( drone.coord )
         errA = normalizeAnglePIPI( drone.heading - refLine.angle )
+
+      if refCircle == None and refLine == None:
+        sx = 0.0 # wait for Z-up
 
       # error correction
       # the goal is to have errY and errA zero in 1 second -> errY defines desired speed at given distance from path
