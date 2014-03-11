@@ -78,7 +78,7 @@ class AirRaceDrone( ARDrone2 ):
       self.lastImageResult = self.loggedVideoResult()
 
 
-def competeAirRace( drone, desiredSpeed = 0.3, desiredHeight = 1.5 ):
+def competeAirRace( drone, desiredSpeed = 0.4, desiredHeight = 1.5 ):
   drone.speed = 0.1
   maxVideoDelay = 0.0
   maxControlGap = 0.0
@@ -104,9 +104,9 @@ def competeAirRace( drone, desiredSpeed = 0.3, desiredHeight = 1.5 ):
     while drone.time < startTime + 120.0:
       # keep height approx at 1.5m
       if drone.coord[2] < desiredHeight-0.1:
-        sz = 0.1
+        sz = 0.2
       elif drone.coord[2] > desiredHeight+0.1:
-        sz = -0.1
+        sz = -0.2
       else:
         sz = 0
       # keep speed at max 1m/s
@@ -143,7 +143,11 @@ def competeAirRace( drone, desiredSpeed = 0.3, desiredHeight = 1.5 ):
             break
         poseHistory = poseHistory[:toDel]
         if estCrossing:
-          print "dist", distance( oldPose, estCrossing ) - TRANSITION_RADIUS
+          dist = distance( oldPose, estCrossing ) - TRANSITION_RADIUS
+          if dist < 0:
+            if pathType != PATH_STRAIGHT:
+              print "NO dist change!", dist
+              #pathType = PATH_STRAIGHT
           # TODO force switch to PATH_STRAIGHT for negative value
           # TODO force switch to PATH_TURN_LEFT/RIGHT for positive value based on coordinate, CROSSING_Y_COORD
 
@@ -194,7 +198,7 @@ def competeAirRace( drone, desiredSpeed = 0.3, desiredHeight = 1.5 ):
       sy = max( -0.2, min( 0.2, -errY-drone.vy ))/2.0
       
       # there is no drone.va (i.e. derivative of heading) available at the moment ... 
-      sa = max( -0.1, min( 0.1, -errA/2.0 ))*1.2
+      sa = max( -0.1, min( 0.1, -errA/2.0 ))*1.35
 
 #      print "%0.2f\t%d\t%0.2f\t%0.2f\t%0.2f" % (errY, int(math.degrees(errA)), drone.vy, sy, sa)
       prevTime = drone.time
