@@ -79,6 +79,7 @@ class AirRaceDrone( ARDrone2 ):
 
 
 def competeAirRace( drone, desiredSpeed = 0.4, desiredHeight = 1.5 ):
+  loops = []
   drone.speed = 0.1
   maxVideoDelay = 0.0
   maxControlGap = 0.0
@@ -126,6 +127,8 @@ def competeAirRace( drone, desiredSpeed = 0.4, desiredHeight = 1.5 ):
         if cp != PATH_UNKNOWN:
           if pathType != cp:
             print "TRANS", pathType, "->", cp
+            if pathType == PATH_TURN_LEFT and cp == PATH_STRAIGHT:
+              loops.append( drone.time )
           pathType = cp
           if pathType == PATH_CROSSING:
             # it is necessary to filter straight segments anyway (i.e. only bad side strip can be detected)
@@ -218,6 +221,7 @@ def competeAirRace( drone, desiredSpeed = 0.4, desiredHeight = 1.5 ):
   drone.stopVideo()
   print "MaxVideoDelay", maxVideoDelay
   print "MaxControlGap", maxControlGap
+  print "Loops in sec", [int(now-prev) for prev,now in zip(loops[:-1],loops[1:])]
 
 
 if __name__ == "__main__": 
