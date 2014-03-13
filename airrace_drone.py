@@ -93,6 +93,7 @@ def competeAirRace( drone, desiredSpeed = 0.4, desiredHeight = 1.5 ):
     while drone.time < startTime + 1.0:
       drone.update("AT*PCMD=%i,0,0,0,0,0\r") # drone.hover(1.0)
       poseHistory.append( (drone.time, (drone.coord[0], drone.coord[1], drone.heading), (drone.angleFB, drone.angleLR)) )
+    magnetoOnStart = drone.magneto[:3]
     print "NAVI-ON"
     estCrossing = getCombinedPose( (drone.coord[0], drone.coord[1], drone.heading), (0.0, CROSSING_Y_COORD, 0.0) )[:2]
     viewlog.dumpBeacon( estCrossing )
@@ -129,6 +130,8 @@ def competeAirRace( drone, desiredSpeed = 0.4, desiredHeight = 1.5 ):
             print "TRANS", pathType, "->", cp
             if pathType == PATH_TURN_LEFT and cp == PATH_STRAIGHT:
               loops.append( drone.time )
+            if drone.magneto[:3] == magnetoOnStart:
+              print "!!!!!!!! COMPASS FAILURE !!!!!!!!"
           pathType = cp
           if pathType == PATH_CROSSING:
             # it is necessary to filter straight segments anyway (i.e. only bad side strip can be detected)
