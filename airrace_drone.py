@@ -103,19 +103,9 @@ def competeAirRace( drone, desiredSpeed = 0.4, desiredHeight = 1.5 ):
     startTime = drone.time
     sx,sy,sz,sa = 0,0,0,0
     lastUpdate = None
-    while drone.time < startTime + 120.0:
-      # keep height approx at 1.5m
-      if drone.coord[2] < desiredHeight-0.1:
-        sz = 0.2
-      elif drone.coord[2] > desiredHeight+0.1:
-        sz = -0.2
-      else:
-        sz = 0
-      # keep speed at max 1m/s
-      if drone.vx > desiredSpeed:
-        sx = 0
-      else:
-        sx = drone.speed
+    while drone.time < startTime + 600.0:
+      sz = max( -0.2, min( 0.2, desiredHeight - drone.coord[2] ))
+      sx = max( 0, min( drone.speed, desiredSpeed - drone.vx ))
 
       if drone.lastImageResult:
         lastUpdate = drone.time
