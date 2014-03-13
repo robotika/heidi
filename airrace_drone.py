@@ -222,6 +222,7 @@ def competeAirRace( drone, desiredSpeed = 0.4, desiredHeight = 1.5 ):
   print "MaxVideoDelay", maxVideoDelay
   print "MaxControlGap", maxControlGap
   print "Loops in sec", [int(now-prev) for prev,now in zip(loops[:-1],loops[1:])]
+  print "Battery", drone.battery
 
 
 if __name__ == "__main__": 
