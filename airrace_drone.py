@@ -188,6 +188,11 @@ def competeAirRace( drone, desiredSpeed = 0.4, desiredHeight = 1.5 ):
 
       if refCircle == None and refLine == None:
         sx = 0.0 # wait for Z-up
+        if drone.coord[2] > desiredHeight - 0.1:
+          print "USING VIRTUAL LEFT TURN CIRCLE!"
+          circPose = getCombinedPose( (drone.coord[0], drone.coord[1], drone.heading), (0.0, REF_CIRCLE_RADIUS, 0 ))
+          viewlog.dumpBeacon( (circPose[0], circPose[1]), index=0 )
+          refCircle = (circPose[0], circPose[1]), REF_CIRCLE_RADIUS
 
       # error correction
       # the goal is to have errY and errA zero in 1 second -> errY defines desired speed at given distance from path
