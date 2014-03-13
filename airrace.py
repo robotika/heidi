@@ -2,7 +2,7 @@
 """
   AirRace competition in Vienna. See robotchallenge.org
   usage:
-       ./airrace.py <image or video file>
+       ./airrace.py <image or video file> [<PaVE frame number>]
 """
 # for introduction of cv2 for Python have a look at
 # http://docs.opencv.org/trunk/doc/py_tutorials/py_tutorials.html
@@ -109,7 +109,7 @@ def testVideo( filename ):
       break
   cap.release()
 
-def testPaVEVideo( filename ):
+def testPaVEVideo( filename, onlyFrameNumber=None ):
   f = open( filename, "rb" )
   data = f.read(10000)
   pave = PaVE()
@@ -119,7 +119,7 @@ def testPaVEVideo( filename ):
     pave.append( data )
     header,payload = pave.extract()
     while payload:
-      if isIFrame( header ):
+      if isIFrame( header ) and (onlyFrameNumber == None or onlyFrameNumber==frameNumber( header )):
         tmpFile = open( "tmp.bin", "wb" )
         tmpFile.write( payload )
         tmpFile.flush()
@@ -132,6 +132,10 @@ def testPaVEVideo( filename ):
           g_filename = "tmp_%04d.jpg" % (frameNumber( header ))
 #          print (frameNumber( header ), timestamp(header)), processFrame( frame, debug=True )
           print frameNumber( header ),  filterRectangles(processFrame( frame, debug=True ))
+        if onlyFrameNumber:
+          cv2.waitKey(0)
+          return
+
       header,payload = pave.extract()
     if cv2.waitKey(1) & 0xFF == ord('q'):
       break
@@ -149,7 +153,10 @@ if __name__ == "__main__":
     testFrame( filename )
   else:
     if isParrotVideo( filename ):
-      testPaVEVideo( filename )
+      if len(sys.argv) > 2:
+        testPaVEVideo( filename, onlyFrameNumber=int(sys.argv[2]) )
+      else:
+        testPaVEVideo( filename )
     else:
       testVideo( filename )
   cv2.destroyAllWindows()
