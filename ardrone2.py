@@ -303,13 +303,18 @@ class ARDrone2:
     else:
       self.confirmedConfig( "AT*CONFIG=%i,\"video:video_channel\",\"1\"\r" ) # 1=HORIzontal view
 
-  def startVideo( self, packetProcessor=None, inputQueue=None, record=True ):
+  def startVideo( self, packetProcessor=None, inputQueue=None, record=True, highResolution=True ):
     if self.videoQueue1 == None and self.videoProcess1 == None:
-#      self.confirmedConfig( "AT*CONFIG=%i,\"video:video_codec\",\"136\"\r" ) # turn on recording
       if record:
-        self.confirmedConfig( "AT*CONFIG=%i,\"video:video_codec\",\"130\"\r" ) # record MP4_360P_H264_720P_CODEC = 0x82,
+        if highResolution:
+          self.confirmedConfig( "AT*CONFIG=%i,\"video:video_codec\",\"130\"\r" ) # record MP4_360P_H264_720P_CODEC = 0x82,
+        else:
+          self.confirmedConfig( "AT*CONFIG=%i,\"video:video_codec\",\"136\"\r" ) # MP4_360P_H264_360P_CODEC = 0x88,
       else:
-        self.confirmedConfig( "AT*CONFIG=%i,\"video:video_codec\",\"131\"\r" ) # H264_720P_CODEC = 0x83, 
+        if highResolution:
+          self.confirmedConfig( "AT*CONFIG=%i,\"video:video_codec\",\"131\"\r" ) # H264_720P_CODEC = 0x83, 
+        else:
+          self.confirmedConfig( "AT*CONFIG=%i,\"video:video_codec\",\"129\"\r" ) # H264_360P_CODEC = 0x81,
 
       if self.replayLog == None:
         self.videoQueue1 = Queue()
