@@ -131,7 +131,10 @@ def competeAirRace( drone, desiredSpeed = 0.4, desiredHeight = 1.5 ):
 
         # keep history small
         videoTime = correctTimePeriod( timestamp/1000., ref=drone.time )
-        maxVideoDelay = max( drone.time - videoTime, maxVideoDelay )
+        videoDelay = drone.time - videoTime
+        if videoDelay > 1.0:
+          print "!DANGER! - video delay", videoDelay
+        maxVideoDelay = max( videoDelay, maxVideoDelay )
         toDel = 0
         for oldTime, oldPose, oldAngles in poseHistory:
           toDel += 1
