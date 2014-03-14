@@ -56,7 +56,7 @@ def filterRectangles( rects, minWidth=150 ):
       ret.append( ((x,y,),(w,h),a) )
   return ret
 
-def stripPose( rect ):
+def stripPose( rect, highResolution=True ):
   "return relative pose of image rectangle"
   (x,y),(w,h),a = rect
   assert w > 3*h, (w,h)  # 30cm long, 5cm wide ... i.e. should be 6 times
@@ -69,7 +69,10 @@ def stripPose( rect ):
     scale = 0.3/float(w)
   else:
     scale = 0.05/float(h)
-  return scale*(720/2-y), scale*(1280/2-x), math.radians( a )
+  if highResolution:
+    return scale*(720/2-y), scale*(1280/2-x), math.radians( a )
+  else:
+    return scale*(360/2-y), scale*(640/2-x), math.radians( a )
 
 PATH_UNKNOWN = '?'
 PATH_STRAIGHT = 'I'

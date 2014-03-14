@@ -15,6 +15,8 @@ class AirRaceTest( unittest.TestCase ):
     s = 0.3/319.
     self.assertEqual( stripPose( ((223, 440), (319, 60), -88) ), (s*(720/2-440), s*(-223+1280/2), math.radians(-2)) )
     self.assertEqual( stripPose( ((298, 508), (319, 58), 75) ), (s*(720/2-508), s*(-298+1280/2), math.radians(15)) )
+    s = 0.3/float(319/2)
+    self.assertEqual( stripPose( ((298/2, 508/2), (319/2, 58/2), 75), highResolution=False ), (s*((720/2-508)/2), s*((-298+1280/2)/2), math.radians(15)) )
 
   def testZScalingBug( self ):
     sWidth = 0.3/189.

@@ -61,12 +61,13 @@ class AirRaceDrone( ARDrone2 ):
   def __init__( self, replayLog=None, speed = 0.2, skipConfigure=False, metaLog=None, console=None ):
     self.loggedVideoResult = None
     self.lastImageResult = None
+    self.videoHighResolution = False
     ARDrone2.__init__( self, replayLog, speed, skipConfigure, metaLog, console )
     if replayLog == None:
       name = timeName( "logs/src_cv2_", "log" ) 
       metaLog.write("cv2: "+name+'\n' )
       self.loggedVideoResult = SourceLogger( getOrNone, name ).get
-      self.startVideo( wrapper, g_queueResults, record=True )
+      self.startVideo( wrapper, g_queueResults, record=True, highResolution=self.videoHighResolution )
     else:
       assert metaLog
       self.loggedVideoResult = SourceLogger( None, metaLog.getLog("cv2:") ).get
@@ -113,8 +114,11 @@ def competeAirRace( drone, desiredSpeed = 0.4, desiredHeight = 1.5 ):
         (frameNumber, timestamp), lastRect = drone.lastImageResult
         viewlog.dumpCamera( "tmp_%04d.jpg" % frameNumber, 0 )
 
-        rects = filterRectangles( lastRect )
-        cp = classifyPath( [stripPose(r) for r in rects] )
+        if drone.videoHighResolution:
+          rects = filterRectangles( lastRect )
+        else:
+          rects = filterRectangles( lastRect, minWidth=75 )
+        cp = classifyPath( [stripPose(r, highResolution=drone.videoHighResolution) for r in rects] )
         if cp != PATH_UNKNOWN:
           if pathType != cp:
             print "TRANS", pathType, "->", cp
@@ -151,7 +155,7 @@ def competeAirRace( drone, desiredSpeed = 0.4, desiredHeight = 1.5 ):
           # TODO force switch to PATH_TURN_LEFT/RIGHT for positive value based on coordinate, CROSSING_Y_COORD
 
         for r in rects:
-          sPose = getCombinedPose( oldPose, stripPose( r ) )
+          sPose = getCombinedPose( oldPose, stripPose( r, highResolution=drone.videoHighResolution ) )
           if pathType == PATH_TURN_LEFT:
             circPose = getCombinedPose( sPose, (0.0, REF_CIRCLE_RADIUS, 0 ))
             viewlog.dumpBeacon( (circPose[0], circPose[1]), index=0 )
