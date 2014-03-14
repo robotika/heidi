@@ -79,7 +79,7 @@ class AirRaceDrone( ARDrone2 ):
       self.lastImageResult = self.loggedVideoResult()
 
 
-def competeAirRace( drone, desiredSpeed = 0.4, desiredHeight = 1.5 ):
+def competeAirRace( drone, desiredSpeed = 0.4, desiredHeight = 1.5, desiredSpeedStep = 0.05 ):
   loops = []
   drone.speed = 0.1
   maxVideoDelay = 0.0
@@ -124,6 +124,8 @@ def competeAirRace( drone, desiredSpeed = 0.4, desiredHeight = 1.5 ):
             print "TRANS", pathType, "->", cp
             if pathType == PATH_TURN_LEFT and cp == PATH_STRAIGHT:
               loops.append( drone.time )
+              desiredSpeed += desiredSpeedStep
+              print "SPEED SET TO", desiredSpeed
             if drone.magneto[:3] == magnetoOnStart:
               print "!!!!!!!! COMPASS FAILURE !!!!!!!!"
           pathType = cp
