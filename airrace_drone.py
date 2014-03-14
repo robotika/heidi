@@ -71,7 +71,7 @@ class AirRaceDrone( ARDrone2 ):
     else:
       assert metaLog
       self.loggedVideoResult = SourceLogger( None, metaLog.getLog("cv2:") ).get
-      self.startVideo( record=True )
+      self.startVideo( record=True, highResolution=self.videoHighResolution )
 
   def update( self, cmd="AT*COMWDG=%i,\r" ):
     ARDrone2.update( self, cmd )
