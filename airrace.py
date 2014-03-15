@@ -11,6 +11,7 @@ import cv2
 import math
 import numpy as np
 from pave import PaVE, isIFrame, frameNumber, timestamp
+from pose import Pose
 
 g_filename = None
 g_mser = None
@@ -70,9 +71,9 @@ def stripPose( rect, highResolution=True ):
   else:
     scale = 0.05/float(h)
   if highResolution:
-    return scale*(720/2-y), scale*(1280/2-x), math.radians( a )
+    return Pose( scale*(720/2-y), scale*(1280/2-x), math.radians( a ) )
   else:
-    return scale*(360/2-y), scale*(640/2-x), math.radians( a )
+    return Pose( scale*(360/2-y), scale*(640/2-x), math.radians( a ) )
 
 PATH_UNKNOWN = '?'
 PATH_STRAIGHT = 'I'
@@ -85,11 +86,11 @@ def classifyPath( poses ):
     return PATH_UNKNOWN
   # poses are expected to by in range -PI/2, PI/2
   p1, p2 = poses[:2]
-  if math.fabs(p1[2]-p2[2]) < math.radians(10):
+  if math.fabs(p1.heading-p2.heading) < math.radians(10):
     return PATH_STRAIGHT
-  if math.fabs(p1[2]-p2[2]) > math.radians(70):
+  if math.fabs(p1.heading-p2.heading) > math.radians(70):
     return PATH_CROSSING
-  if p1[2] > p2[2]:
+  if p1.heading > p2.heading:
     return PATH_TURN_RIGHT
   else:
     return PATH_TURN_LEFT

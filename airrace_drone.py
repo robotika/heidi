@@ -15,8 +15,8 @@ from airrace import PATH_UNKNOWN, PATH_STRAIGHT, PATH_CROSSING, PATH_TURN_LEFT, 
 from sourcelogger import SourceLogger
 from ardrone2 import ARDrone2, ManualControlException, manualControl, normalizeAnglePIPI, distance
 import viewlog
-from viewer import getCombinedPose # TODO refactoring
 from line import Line
+from pose import Pose
 
 REF_CIRCLE_RADIUS = 1.4 # TODO measure in real arena!
 REF_LINE_CROSSING_ANGLE = math.radians(50) # angle for selection of proper strip
@@ -96,7 +96,7 @@ def competeAirRace( drone, desiredSpeed = 0.4, desiredHeight = 1.5, desiredSpeed
       poseHistory.append( (drone.time, (drone.coord[0], drone.coord[1], drone.heading), (drone.angleFB, drone.angleLR)) )
     magnetoOnStart = drone.magneto[:3]
     print "NAVI-ON"
-    estCrossing = getCombinedPose( (drone.coord[0], drone.coord[1], drone.heading), (0.0, CROSSING_Y_COORD, 0.0) )[:2]
+    estCrossing = Pose( drone.coord[0], drone.coord[1], drone.heading ).add( Pose(0.0, CROSSING_Y_COORD, 0.0) ).coord()
     viewlog.dumpBeacon( estCrossing )
     pathType = PATH_TURN_LEFT
     refCircle = None
@@ -157,26 +157,26 @@ def competeAirRace( drone, desiredSpeed = 0.4, desiredHeight = 1.5, desiredSpeed
           # TODO force switch to PATH_TURN_LEFT/RIGHT for positive value based on coordinate, CROSSING_Y_COORD
 
         for r in rects:
-          sPose = getCombinedPose( oldPose, stripPose( r, highResolution=drone.videoHighResolution ) )
+          sPose = Pose( *oldPose ).add( stripPose( r, highResolution=drone.videoHighResolution ) )
           if pathType == PATH_TURN_LEFT:
-            circPose = getCombinedPose( sPose, (0.0, REF_CIRCLE_RADIUS, 0 ))
-            viewlog.dumpBeacon( (circPose[0], circPose[1]), index=0 )
-            refCircle = (circPose[0], circPose[1]), REF_CIRCLE_RADIUS
+            circCenter = sPose.add( Pose(0.0, REF_CIRCLE_RADIUS, 0 )).coord()
+            viewlog.dumpBeacon( circCenter, index=0 )
+            refCircle = circCenter, REF_CIRCLE_RADIUS
           elif pathType == PATH_TURN_RIGHT:
-            circPose = getCombinedPose( sPose, (0.0, -REF_CIRCLE_RADIUS, 0 ))
-            viewlog.dumpBeacon( (circPose[0], circPose[1]), index=1 )
-            refCircle = (circPose[0], circPose[1]), REF_CIRCLE_RADIUS
+            circCenter = sPose.add( Pose(0.0, -REF_CIRCLE_RADIUS, 0 )).coord()
+            viewlog.dumpBeacon( circCenter, index=1 )
+            refCircle = circCenter, REF_CIRCLE_RADIUS
           else:
             refCircle = None
           if pathType == PATH_STRAIGHT:
-            if refLine == None or abs(normalizeAnglePIPI( refLine.angle - sPose[2] )) < REF_LINE_CROSSING_ANGLE:
-              refLine = Line( (sPose[0]-0.15*math.cos(sPose[2]), sPose[1]-0.15*math.sin(sPose[2])), 
-                                       (sPose[0]+0.15*math.cos(sPose[2]), sPose[1]+0.15*math.sin(sPose[2])) )
+            if refLine == None or abs(normalizeAnglePIPI( refLine.angle - sPose.heading )) < REF_LINE_CROSSING_ANGLE:
+              refLine = Line( (sPose.x-0.15*math.cos(sPose.heading), sPose.y-0.15*math.sin(sPose.heading)), 
+                                       (sPose.x+0.15*math.cos(sPose.heading), sPose.y+0.15*math.sin(sPose.heading)) )
           else:
             refLine = None
-          viewlog.dumpBeacon( (sPose[0], sPose[1]), index=3 )
-          viewlog.dumpObstacles( [[(sPose[0]-0.15*math.cos(sPose[2]), sPose[1]-0.15*math.sin(sPose[2])), 
-                                       (sPose[0]+0.15*math.cos(sPose[2]), sPose[1]+0.15*math.sin(sPose[2]))]] )
+          viewlog.dumpBeacon( sPose.coord(), index=3 )
+          viewlog.dumpObstacles( [[(sPose.x-0.15*math.cos(sPose.heading), sPose.y-0.15*math.sin(sPose.heading)), 
+                                       (sPose.x+0.15*math.cos(sPose.heading), sPose.y+0.15*math.sin(sPose.heading))]] )
 
       # error definition ... if you substract that you get desired position or angle
       # error is taken from the path point of view, x-path direction, y-positive left, angle-anticlockwise
@@ -199,9 +199,9 @@ def competeAirRace( drone, desiredSpeed = 0.4, desiredHeight = 1.5, desiredSpeed
         sx = 0.0 # wait for Z-up
         if drone.coord[2] > desiredHeight - 0.1:
           print "USING VIRTUAL LEFT TURN CIRCLE!"
-          circPose = getCombinedPose( (drone.coord[0], drone.coord[1], drone.heading), (0.0, REF_CIRCLE_RADIUS, 0 ))
-          viewlog.dumpBeacon( (circPose[0], circPose[1]), index=0 )
-          refCircle = (circPose[0], circPose[1]), REF_CIRCLE_RADIUS
+          circCenter = Pose( drone.coord[0], drone.coord[1], drone.heading ).add( Pose(0.0, REF_CIRCLE_RADIUS, 0 )).coord()
+          viewlog.dumpBeacon( circCenter, index=0 )
+          refCircle = circCenter, REF_CIRCLE_RADIUS
 
       # error correction
       # the goal is to have errY and errA zero in 1 second -> errY defines desired speed at given distance from path

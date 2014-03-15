@@ -13,19 +13,19 @@ class AirRaceTest( unittest.TestCase ):
 
   def testStripPose( self ):
     s = 0.3/319.
-    self.assertEqual( stripPose( ((223, 440), (319, 60), -88) ), (s*(720/2-440), s*(-223+1280/2), math.radians(-2)) )
-    self.assertEqual( stripPose( ((298, 508), (319, 58), 75) ), (s*(720/2-508), s*(-298+1280/2), math.radians(15)) )
+    self.assertEqual( repr(stripPose( ((223, 440), (319, 60), -88) )), repr(Pose(s*(720/2-440), s*(-223+1280/2), math.radians(-2))) )
+    self.assertEqual( repr(stripPose( ((298, 508), (319, 58), 75) )), repr(Pose(s*(720/2-508), s*(-298+1280/2), math.radians(15))) )
     s = 0.3/float(319/2)
-    self.assertEqual( stripPose( ((298/2, 508/2), (319/2, 58/2), 75), highResolution=False ), (s*((720/2-508)/2), s*((-298+1280/2)/2), math.radians(15)) )
+    self.assertEqual( repr(stripPose( ((298/2, 508/2), (319/2, 58/2), 75), highResolution=False )), repr(Pose(s*((720/2-508)/2), s*((-298+1280/2)/2), math.radians(15))) )
 
   def testZScalingBug( self ):
     sWidth = 0.3/189.
     s = 0.05/53.
-    self.assertEqual( stripPose( ((898, 257), (189, 53), -58) ), (s*(720/2-257), s*(-898+1280/2), math.radians(-32)) )
+    self.assertEqual( repr(stripPose( ((898, 257), (189, 53), -58) )), repr(Pose(s*(720/2-257), s*(-898+1280/2), math.radians(-32))) )
 
   def testClassifyPath( self ):
-    self.assertEqual( classifyPath( [(0,0,0)] ), PATH_UNKNOWN )
-    self.assertEqual( classifyPath( [(0,0,0), (0.3,0,0),] ), PATH_STRAIGHT )
+    self.assertEqual( classifyPath( [Pose(0,0,0)] ), PATH_UNKNOWN )
+    self.assertEqual( classifyPath( [Pose(0,0,0), Pose(0.3,0,0),] ), PATH_STRAIGHT )
 
     # reference frames from "video_rec_140225_200914.bin"
     poses = [stripPose(rec) for rec in [((968, 580), (271, 51), -16), ((305, 383), (295, 52), 90)]] # frame 270

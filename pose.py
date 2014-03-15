@@ -22,3 +22,14 @@ class Pose:
     y = self.y - ( pose.x * math.sin( heading ) + pose.y * math.cos( heading ) )
     return Pose(x, y, heading)
 
+  def coord( self ):
+    return (self.x, self.y)
+
+  def __iter__( self ):
+    return self.iterator()
+
+  def iterator( self ):
+    yield self.x
+    yield self.y
+    yield self.heading
+

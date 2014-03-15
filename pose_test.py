@@ -18,6 +18,12 @@ class PoseTest( unittest.TestCase ):
     self.assertEqual( str(A), str(C.sub(B)) )
     self.assertNotEqual( str(B), str(C.sub(A)) ) # not symertic operation, like for matrices
 
+  def testTuple( self ):
+    self.assertEqual( tuple(Pose(1,2,3)), (1,2,3) )
+
+  def testCoord( self ):
+    self.assertEqual( Pose(1,2,3).coord(), (1,2) )
+
 if __name__ == "__main__":
   unittest.main() 
 
