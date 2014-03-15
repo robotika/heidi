@@ -157,12 +157,12 @@ def drawImage( foreground, imgFileName, camdir ):
   if imgFileName:
 #  imgFileName = 'D:\\md\\hg\\eduro-logs\\100619-rychnov\\pes1\\cam100619_145404_000.jpg'
     camera = pygame.image.load( imgFileName ).convert()
-    cameraView = pygame.transform.scale( camera, (320, 240) )
+    cameraView = pygame.transform.scale( camera, (320, 180) )
     if camdir is not None:
       color = (0xFF, 0x00, 0x00)
-      start_pos = (160, 240)
+      start_pos = (160, 180)
       length = 80
-      end_pos = (160 - length * math.sin(camdir), 240 - length * math.cos(camdir))
+      end_pos = (160 - length * math.sin(camdir), 180 - length * math.cos(camdir))
       width = 2
       pygame.draw.line(cameraView, color, start_pos, end_pos, width)
     foreground.blit( cameraView, (size[0]-320,0) )
