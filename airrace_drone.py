@@ -116,7 +116,7 @@ def competeAirRace( drone, desiredSpeed = 0.4, desiredHeight = 1.5, desiredSpeed
         viewlog.dumpCamera( "tmp_%04d.jpg" % (frameNumber/15,), 0 )
 
         if drone.videoHighResolution:
-          rects = filterRectangles( lastRect )
+          rects = filterRectangles( lastRect, minWidth=150 )
         else:
           rects = filterRectangles( lastRect, minWidth=75 )
         cp = classifyPath( [stripPose(r, highResolution=drone.videoHighResolution) for r in rects] )

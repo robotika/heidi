@@ -38,7 +38,7 @@ def processFrame( frame, debug=False ):
       box = cv2.cv.BoxPoints(rect)
       box = np.int0(box)
       cv2.drawContours( frame,[box],0,(255,0,0),2)
-    for rect in filterRectangles(result):
+    for rect in filterRectangles(result, minWidth=150/2):
       box = cv2.cv.BoxPoints(rect)
       box = np.int0(box)
       cv2.drawContours( frame,[box],0,(0,0,255),2)
@@ -134,7 +134,7 @@ def testPaVEVideo( filename, onlyFrameNumber=None ):
         if ret:
           global g_filename
           g_filename = "tmp_%04d.jpg" % (frameNumber( header )/15)
-          print frameNumber( header )/15,  filterRectangles(processFrame( frame, debug=True ))
+          print frameNumber( header )/15,  filterRectangles(processFrame( frame, debug=True ), minWidth=150/2)
         if onlyFrameNumber:
           cv2.waitKey(0)
           return
