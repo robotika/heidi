@@ -18,8 +18,10 @@ class Pose:
 
   def sub( self, pose ):
     heading = self.heading - pose.heading
-    x = self.x - ( pose.x * math.cos( heading ) - pose.y * math.sin( heading ) )
-    y = self.y - ( pose.x * math.sin( heading ) + pose.y * math.cos( heading ) )
+    dx = self.x - pose.x
+    dy = self.y - pose.y
+    x = dx * math.cos( -pose.heading ) - dy * math.sin( -pose.heading )
+    y = dx * math.sin( -pose.heading ) + dy * math.cos( -pose.heading )
     return Pose(x, y, heading)
 
   def coord( self ):

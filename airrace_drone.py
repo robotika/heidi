@@ -85,6 +85,7 @@ def competeAirRace( drone, desiredSpeed = 0.4, desiredHeight = 1.5, desiredSpeed
   maxVideoDelay = 0.0
   maxControlGap = 0.0
   estCrossing = None
+  lastStripPose = None
   try:
     drone.wait(1.0)
     drone.setVideoChannel( front=False )    
@@ -158,6 +159,9 @@ def competeAirRace( drone, desiredSpeed = 0.4, desiredHeight = 1.5, desiredSpeed
 
         for r in rects:
           sPose = Pose( *oldPose ).add( stripPose( r, highResolution=drone.videoHighResolution ) )
+          if lastStripPose != None:
+            print sPose.sub( lastStripPose )
+          lastStripPose = sPose
           if pathType == PATH_TURN_LEFT:
             circCenter = sPose.add( Pose(0.0, REF_CIRCLE_RADIUS, 0 )).coord()
             viewlog.dumpBeacon( circCenter, index=0 )
