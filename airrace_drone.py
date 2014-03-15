@@ -112,7 +112,7 @@ def competeAirRace( drone, desiredSpeed = 0.4, desiredHeight = 1.5, desiredSpeed
         lastUpdate = drone.time
         assert len( drone.lastImageResult ) == 2 and len( drone.lastImageResult[0] ) == 2, drone.lastImageResult
         (frameNumber, timestamp), lastRect = drone.lastImageResult
-        viewlog.dumpCamera( "tmp_%04d.jpg" % frameNumber, 0 )
+        viewlog.dumpCamera( "tmp_%04d.jpg" % (frameNumber/15,), 0 )
 
         if drone.videoHighResolution:
           rects = filterRectangles( lastRect )
@@ -132,7 +132,7 @@ def competeAirRace( drone, desiredSpeed = 0.4, desiredHeight = 1.5, desiredSpeed
           if pathType == PATH_CROSSING:
             # it is necessary to filter straight segments anyway (i.e. only bad side strip can be detected)
             pathType = PATH_STRAIGHT
-        print "FRAME", frameNumber, cp, pathType
+        print "FRAME", frameNumber/15, cp, pathType
 #        print drone.magneto[12:15]
 
         # keep history small

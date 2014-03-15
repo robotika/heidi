@@ -133,9 +133,8 @@ def testPaVEVideo( filename, onlyFrameNumber=None ):
         assert ret
         if ret:
           global g_filename
-          g_filename = "tmp_%04d.jpg" % (frameNumber( header ))
-#          print (frameNumber( header ), timestamp(header)), processFrame( frame, debug=True )
-          print frameNumber( header ),  filterRectangles(processFrame( frame, debug=True ))
+          g_filename = "tmp_%04d.jpg" % (frameNumber( header )/15)
+          print frameNumber( header )/15,  filterRectangles(processFrame( frame, debug=True ))
         if onlyFrameNumber:
           cv2.waitKey(0)
           return
