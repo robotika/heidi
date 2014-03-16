@@ -17,6 +17,7 @@ from ardrone2 import ARDrone2, ManualControlException, manualControl, normalizeA
 import viewlog
 from line import Line
 from pose import Pose
+from striploc import StripsLocalisation
 
 REF_CIRCLE_RADIUS = 1.4 # TODO measure in real arena!
 REF_LINE_CROSSING_ANGLE = math.radians(50) # angle for selection of proper strip
@@ -85,7 +86,7 @@ def competeAirRace( drone, desiredSpeed = 0.4, desiredHeight = 1.5, desiredSpeed
   maxVideoDelay = 0.0
   maxControlGap = 0.0
   estCrossing = None
-  lastStripPose = None
+  loc = StripsLocalisation()
   try:
     drone.wait(1.0)
     drone.setVideoChannel( front=False )    
@@ -157,11 +158,11 @@ def competeAirRace( drone, desiredSpeed = 0.4, desiredHeight = 1.5, desiredSpeed
           # TODO force switch to PATH_STRAIGHT for negative value
           # TODO force switch to PATH_TURN_LEFT/RIGHT for positive value based on coordinate, CROSSING_Y_COORD
 
+        if loc:
+          loc.updateFrame( Pose( *oldPose ), [stripPose( r, highResolution=drone.videoHighResolution ) for r in rects] )
+
         for r in rects:
           sPose = Pose( *oldPose ).add( stripPose( r, highResolution=drone.videoHighResolution ) )
-          if lastStripPose != None:
-            print sPose.sub( lastStripPose )
-          lastStripPose = sPose
           if pathType == PATH_TURN_LEFT:
             circCenter = sPose.add( Pose(0.0, REF_CIRCLE_RADIUS, 0 )).coord()
             viewlog.dumpBeacon( circCenter, index=0 )
