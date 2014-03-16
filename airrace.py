@@ -19,8 +19,8 @@ g_mser = None
 def processFrame( frame, debug=False ):
   result = []
   global g_mser
-#  if g_mser == None:
-#    g_mser = cv2.MSER( _delta = 10, _min_area=100, _max_area=300*50*2 )
+  if g_mser == None:
+    g_mser = cv2.MSER( _delta = 10, _min_area=100, _max_area=300*50*2 )
   gray = cv2.cvtColor( frame, cv2.COLOR_BGR2GRAY )
   if g_mser:
     contours = g_mser.detect(gray, None)
@@ -32,6 +32,8 @@ def processFrame( frame, debug=False ):
     if area > 100 and area < 100000:
       rect = cv2.minAreaRect(cnt)
       result.append( rect )
+  if g_mser != None:
+    result = removeDuplicities( result )
   if debug:
     cv2.drawContours(frame, contours, -1, (0,255,0), 3)
     for rect in result:
@@ -94,6 +96,22 @@ def classifyPath( poses ):
     return PATH_TURN_RIGHT
   else:
     return PATH_TURN_LEFT
+
+def removeDuplicities( rectangles ):
+  "for MSER remove multiple detections of the same strip"
+  radius = 20
+  ret = []
+  for (x,y),(w,h),a in rectangles:
+    for (x2,y2),(w2,h2),a2 in ret:
+      if abs(x-x2) < radius and abs(y-y2) < radius:
+        if w2 < w:
+          # use the bigger one
+          ret.remove( ((x2,y2),(w2,h2),a2) )
+          ret.append( ((x,y),(w,h),a) )
+        break
+    else:
+      ret.append( ((x,y),(w,h),a) )
+  return ret
 
 
 def testFrame( filename ):

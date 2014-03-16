@@ -52,6 +52,12 @@ class AirRaceTest( unittest.TestCase ):
     poses = [stripPose(rec) for rec in [((670, 526), (182, 32), 82), ((660, 282), (201, 43), 90)]]
     self.assertEqual( classifyPath( poses ), PATH_STRAIGHT )
 
+  def testRemoveDuplicities( self ):
+    self.assertEqual( removeDuplicities([]), [] )
+    self.assertEqual( removeDuplicities( [((400, 162), (128, 20), -72), ((400, 161), (131, 24), -72)] ), [((400, 161), (131, 24), -72)] )
+    self.assertEqual( removeDuplicities( [((209, 292), (133, 30), -87), ((201, 136), (95, 20), 77), ((198, 123), (143, 27), 78)] ),
+      [((209, 292), (133, 30), -87), ((198, 123), (143, 27), 78)] )
+
 if __name__ == "__main__":
   unittest.main() 
 
