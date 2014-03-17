@@ -160,6 +160,8 @@ def competeAirRace( drone, desiredSpeed = 0.4, desiredHeight = 1.5, desiredSpeed
 
         if loc:
           loc.updateFrame( Pose( *oldPose ), [stripPose( r, highResolution=drone.videoHighResolution ) for r in rects] )
+          if loc.pathType != pathType:
+            print "DIFFERENT pathType", pathType, loc.pathType
 
         for r in rects:
           sPose = Pose( *oldPose ).add( stripPose( r, highResolution=drone.videoHighResolution ) )
