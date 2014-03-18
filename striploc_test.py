@@ -22,6 +22,27 @@ class StripsLocalisationTest( unittest.TestCase ):
     loc.updateFrame( Pose(2.45, -5.53, math.radians(-83)), [Pose(-0.04, -0.12, math.radians(-6))] )
     self.assertEqual( loc.pathType, PATH_STRAIGHT )
 
+  def testEvalDiff( self ):
+    loc = StripsLocalisation()
+    self.assertAlmostEqual( loc.evalDiff( Pose(), Pose() ), 0.0, 5 )
+    self.assertAlmostEqual( loc.evalDiff( Pose(1,2,0), Pose(4,6,0) ), 5.0, 5 )
+    self.assertAlmostEqual( loc.evalDiff( Pose(0,0,math.radians(10)), Pose(0,0,math.radians(20)) ), 0.1, 5 )
+    self.assertAlmostEqual( loc.evalDiff( Pose(0,0,math.radians(10)), Pose(0,0,math.radians(350)) ), 0.2, 5 )
+
+  def testBestMatch( self ):
+    loc = StripsLocalisation()
+    self.assertEqual( loc.bestMatch( Pose(1,2,0), [Pose(), Pose(1,0,0), Pose(2,0,0)] ), 1 )
+
+  def testReference( self ):
+    turnStep = Pose( 0.4, 0.1, math.radians(18) ) # TODO proper values
+    loc = StripsLocalisation()
+    loc.updateFrame( Pose(0,0,0), [Pose(0,0,0)] ) # start strip
+    self.assertEqual( loc.refIndex, 0 )
+    loc.updateFrame( Pose(0.4,0.1,math.radians(18)), [Pose(0,0,0)] ) # 2nd strip on LEFT_TURN
+    self.assertEqual( loc.refIndex, 1 )
+    loc.updateFrame( turnStep.add(turnStep).add(turnStep), [Pose(0,0,0)] ) # 4th strip on LEFT_TURN
+    self.assertEqual( loc.refIndex, 3 )
+
 if __name__ == "__main__":
   unittest.main() 
 
