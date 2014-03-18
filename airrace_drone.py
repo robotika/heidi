@@ -162,9 +162,10 @@ def competeAirRace( drone, desiredSpeed = 0.4, desiredHeight = 1.5, desiredSpeed
           loc.updateFrame( Pose( *oldPose ), [stripPose( r, highResolution=drone.videoHighResolution ) for r in rects] )
           if loc.pathType != pathType:
             print "DIFFERENT pathType", pathType, loc.pathType
+            pathType = loc.pathType
 
-        for r in rects:
-          sPose = Pose( *oldPose ).add( stripPose( r, highResolution=drone.videoHighResolution ) )
+        if loc and loc.pathPose:
+          sPose = loc.pathPose
           if pathType == PATH_TURN_LEFT:
             circCenter = sPose.add( Pose(0.0, REF_CIRCLE_RADIUS, 0 )).coord()
             viewlog.dumpBeacon( circCenter, index=0 )
@@ -181,6 +182,9 @@ def competeAirRace( drone, desiredSpeed = 0.4, desiredHeight = 1.5, desiredSpeed
                                        (sPose.x+0.15*math.cos(sPose.heading), sPose.y+0.15*math.sin(sPose.heading)) )
           else:
             refLine = None
+
+        for r in rects:
+          sPose = Pose( *oldPose ).add( stripPose( r, highResolution=drone.videoHighResolution ) )
           viewlog.dumpBeacon( sPose.coord(), index=3 )
           viewlog.dumpObstacles( [[(sPose.x-0.15*math.cos(sPose.heading), sPose.y-0.15*math.sin(sPose.heading)), 
                                        (sPose.x+0.15*math.cos(sPose.heading), sPose.y+0.15*math.sin(sPose.heading))]] )

@@ -11,6 +11,7 @@ class StripsLocalisation:
     self.basePose = Pose()
     self.lastStripPose = None
     self.pathType = PATH_TURN_LEFT
+    self.pathPose = None
     self.refIndex = 0
     self.ref = []
     p = Pose()
@@ -29,7 +30,7 @@ class StripsLocalisation:
 
   def diff2pathType( self, dx, dy, da ):
     da = normalizeAnglePIPI(da)
-    if (0.35 < dx < 0.45) and abs(da) < math.radians(50):
+    if (0.25 < dx < 0.45) and abs(da) < math.radians(50):
       if abs(da) < math.radians(10):
         return PATH_STRAIGHT
       elif da > 0:
@@ -59,6 +60,7 @@ class StripsLocalisation:
           pt = self.diff2pathType( dx, dy, da )
           if pt:
             self.pathType = pt
+            self.pathPose = pose.add( frameStrips[i] ) # also j should be OK
             break
 
     if len(frameStrips) == 1 and self.lastStripPose != None:
@@ -67,6 +69,7 @@ class StripsLocalisation:
       pt = self.diff2pathType( dx, dy, da )
       if pt:
         self.pathType = pt
+        self.pathPose = sPose
 
     for fs in frameStrips:
       sPose = pose.add( fs )
