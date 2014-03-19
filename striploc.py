@@ -51,8 +51,9 @@ class StripsLocalisation:
         ret = i
     return ret
 
-  def updateFrame( self, pose, frameStrips ):
-    print pose, [str(p) for p in frameStrips]
+  def updateFrame( self, pose, frameStrips, verbose=False ):
+    if verbose:
+      print pose, [str(p) for p in frameStrips]
     for i in xrange(len(frameStrips)):
       for j in xrange(len(frameStrips)):
         if i != j:
@@ -73,7 +74,7 @@ class StripsLocalisation:
 
     for fs in frameStrips:
       sPose = pose.add( fs )
-      if self.lastStripPose != None:
+      if verbose and self.lastStripPose != None:
         print sPose.sub( self.lastStripPose )
       self.lastStripPose = sPose
 

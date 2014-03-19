@@ -85,7 +85,6 @@ def competeAirRace( drone, desiredSpeed = 0.4, desiredHeight = 1.5, desiredSpeed
   drone.speed = 0.1
   maxVideoDelay = 0.0
   maxControlGap = 0.0
-  estCrossing = None
   loc = StripsLocalisation()
   try:
     drone.wait(1.0)
@@ -98,8 +97,6 @@ def competeAirRace( drone, desiredSpeed = 0.4, desiredHeight = 1.5, desiredSpeed
       poseHistory.append( (drone.time, (drone.coord[0], drone.coord[1], drone.heading), (drone.angleFB, drone.angleLR)) )
     magnetoOnStart = drone.magneto[:3]
     print "NAVI-ON"
-    estCrossing = Pose( drone.coord[0], drone.coord[1], drone.heading ).add( Pose(0.0, CROSSING_Y_COORD, 0.0) ).coord()
-    viewlog.dumpBeacon( estCrossing )
     pathType = PATH_TURN_LEFT
     refCircle = None
     refLine = None
@@ -120,22 +117,6 @@ def competeAirRace( drone, desiredSpeed = 0.4, desiredHeight = 1.5, desiredSpeed
           rects = filterRectangles( lastRect, minWidth=150 )
         else:
           rects = filterRectangles( lastRect, minWidth=75 )
-        cp = classifyPath( [stripPose(r, highResolution=drone.videoHighResolution) for r in rects] )
-        if cp != PATH_UNKNOWN:
-          if pathType != cp:
-            print "TRANS", pathType, "->", cp
-            if pathType == PATH_TURN_LEFT and cp == PATH_STRAIGHT:
-              loops.append( drone.time )
-              desiredSpeed += desiredSpeedStep
-              print "SPEED SET TO", desiredSpeed
-            if drone.magneto[:3] == magnetoOnStart:
-              print "!!!!!!!! COMPASS FAILURE !!!!!!!!"
-          pathType = cp
-          if pathType == PATH_CROSSING:
-            # it is necessary to filter straight segments anyway (i.e. only bad side strip can be detected)
-            pathType = PATH_STRAIGHT
-        print "FRAME", frameNumber/15, cp, pathType
-#        print drone.magneto[12:15]
 
         # keep history small
         videoTime = correctTimePeriod( timestamp/1000., ref=drone.time )
@@ -149,22 +130,20 @@ def competeAirRace( drone, desiredSpeed = 0.4, desiredHeight = 1.5, desiredSpeed
           if oldTime >= videoTime:
             break
         poseHistory = poseHistory[:toDel]
-        if estCrossing:
-          dist = distance( oldPose, estCrossing ) - TRANSITION_RADIUS
-          if dist < 0:
-            if pathType != PATH_STRAIGHT:
-              print "NO dist change!", dist
-              #pathType = PATH_STRAIGHT
-          # TODO force switch to PATH_STRAIGHT for negative value
-          # TODO force switch to PATH_TURN_LEFT/RIGHT for positive value based on coordinate, CROSSING_Y_COORD
 
-        if loc:
-          loc.updateFrame( Pose( *oldPose ), [stripPose( r, highResolution=drone.videoHighResolution ) for r in rects] )
-          if loc.pathType != pathType:
-            print "DIFFERENT pathType", pathType, loc.pathType
-            pathType = loc.pathType
+        loc.updateFrame( Pose( *oldPose ), [stripPose( r, highResolution=drone.videoHighResolution ) for r in rects] )
+        if loc.pathType != pathType:
+          print "TRANS", pathType, "->", loc.pathType
+          if pathType == PATH_TURN_LEFT and loc.pathType == PATH_STRAIGHT:
+            loops.append( drone.time )
+            desiredSpeed += desiredSpeedStep
+            print "SPEED SET TO", desiredSpeed
+          if drone.magneto[:3] == magnetoOnStart:
+            print "!!!!!!!! COMPASS FAILURE !!!!!!!!"
+          pathType = loc.pathType
+        print "FRAME", frameNumber/15, pathType
 
-        if loc and loc.pathPose:
+        if loc.pathPose:
           sPose = loc.pathPose
           if pathType == PATH_TURN_LEFT:
             circCenter = sPose.add( Pose(0.0, REF_CIRCLE_RADIUS, 0 )).coord()
