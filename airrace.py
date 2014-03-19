@@ -39,14 +39,16 @@ def processFrame( frame, debug=False ):
 #    ret, binary = cv2.threshold( gray, 0, 255, cv2.THRESH_OTSU )
     contours, hierarchy = cv2.findContours( binary, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE )
   for cnt in contours:
-    area = cv2.contourArea(cnt, oriented=True)
-    if area > 100 and area < 100000:
+    if g_mser == None:
+      area = cv2.contourArea(cnt, oriented=True)
+    if g_mser != None or (area > 100 and area < 100000):
       rect = cv2.minAreaRect(cnt)
       result.append( rect )
   if g_mser != None:
     result = removeDuplicities( result )
   if debug:
-    cv2.drawContours(frame, contours, -1, (0,255,0), 3)
+    if g_mser == None:
+      cv2.drawContours(frame, contours, -1, (0,255,0), 3)
     for rect in result:
       box = cv2.cv.BoxPoints(rect)
       box = np.int0(box)
