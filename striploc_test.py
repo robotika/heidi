@@ -53,6 +53,17 @@ class StripsLocalisationTest( unittest.TestCase ):
     loc.updateFrame( Pose(0.97, -3.08, math.radians(-3)), [Pose(-0.13, -0.22, math.radians(-43)), Pose(0.09, -0.36, math.radians(-42))] )
     self.assertEqual( loc.pathType, PATH_STRAIGHT )
 
+  def testEvalStrips( self ):
+    loc = StripsLocalisation()
+    self.assertAlmostEqual( loc.evalDiff( Pose(), Pose(0,0,math.radians(180)), oriented=False ), 0.0, 5 )
+
+  def testMCL( self ):
+    loc = StripsLocalisation( numSamples=2 )
+    self.assertNotEqual( loc.samples[0], loc.samples[1] )
+    loc.mclStep( Pose(1.0, 0, 0), [] )
+
+
+
 if __name__ == "__main__":
   unittest.main() 
 

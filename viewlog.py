@@ -28,6 +28,7 @@ def dumpSamples( samples ):
   if viewLogFile:
     viewLogFile.write( "Poses\n" );
     for s in samples:
+      s = tuple( s ) # workaround for Pose
       viewLogFile.write( "%f\t%f\t%f\n" % s )
 
 def dumpCompass( angle ):

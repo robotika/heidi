@@ -85,7 +85,7 @@ def competeAirRace( drone, desiredSpeed = 0.4, desiredHeight = 1.5, desiredSpeed
   drone.speed = 0.1
   maxVideoDelay = 0.0
   maxControlGap = 0.0
-  loc = StripsLocalisation()
+  loc = StripsLocalisation( numSamples = 100 )
   try:
     drone.wait(1.0)
     drone.setVideoChannel( front=False )    
@@ -132,6 +132,7 @@ def competeAirRace( drone, desiredSpeed = 0.4, desiredHeight = 1.5, desiredSpeed
         poseHistory = poseHistory[:toDel]
 
         loc.updateFrame( Pose( *oldPose ), [stripPose( r, highResolution=drone.videoHighResolution ) for r in rects] )
+        viewlog.dumpSamples( loc.samples )
         if loc.pathType != pathType:
           print "TRANS", pathType, "->", loc.pathType
           if pathType == PATH_TURN_LEFT and loc.pathType == PATH_STRAIGHT:

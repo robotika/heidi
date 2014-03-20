@@ -5,11 +5,13 @@ from pose import Pose
 from airrace import PATH_TURN_LEFT, PATH_TURN_RIGHT, PATH_STRAIGHT
 from ardrone2 import normalizeAnglePIPI # TODO refactoring
 import math
+import random
 
 class StripsLocalisation:
-  def __init__( self ):
+  def __init__( self, numSamples = 10 ):
     self.basePose = Pose()
     self.lastStripPose = None
+    self.lastFramePose = None # drone pose when the last image was taken
     self.pathType = PATH_TURN_LEFT
     self.pathPose = None
     self.refIndex = 0
@@ -24,7 +26,60 @@ class StripsLocalisation:
       self.ref.append( p )
       p = p.add( Pose(0.4, 0.0, 0) )
 
-  
+    self.random = random.Random(0).uniform
+    cov=(0.1, 0.1, math.radians(25)) # TODO better estimate
+    self.samples = [ Pose(*tuple([v+self.random(-c,c) for v,c in zip([0,0,0],cov)])) for i in range(numSamples)] 
+
+  def evalMap( self, pose, frameStrips ):
+    ret = 1.0
+    foundAny = False
+    for strip in self.ref:
+      img = strip.sub(pose)
+      if abs(img.x) < 0.5 and abs(img.y) < 0.7: # TODO correct camera view
+        foundAny = True
+        if len(frameStrips) > 0:
+          val = min([self.evalDiff(img, fs, oriented=False) for fs in frameStrips])
+          ret *= math.exp( val ) # is it good idea???
+        else:
+          # missing detection
+          ret *= 0.1
+    if not foundAny and len(frameStrips) > 0:
+      ret *=0.5
+    return ret
+
+  def resample( self, weights ):
+    "replace internal samples based on weights "
+    weightSum = sum( weights )
+    step = weightSum/len(self.samples)
+    seed = self.random(0,step)
+    newSet = [0]*len(self.samples)
+    tmp = 0
+    i = 0
+    for s,w in zip(self.samples,weights):
+      tmp += w
+      while seed <= tmp:
+        newSet[i] = s
+        i += 1
+        seed += step
+    self.samples = newSet
+
+  def mclStep( self, poseStep, frameStrips ):
+    dx, dy, da = poseStep
+    newSamples = []
+    for s in self.samples:
+      # TODO tune distribution
+      newSamples.append( s.add( Pose(dx+dx*self.random(-0.1,0.1), dy+dy*self.random(-0.1,0.1), da+da*self.random(-0.1,0.1))))
+    self.samples = newSamples 
+
+    weights = []
+    for s in self.samples:
+      weights.append( self.evalMap( s, frameStrips ) )
+
+    self.resample( weights )
+
+
+
+
   def filterPose( self, pose ):
     return pose.sub( self.basePose )
 
@@ -40,9 +95,12 @@ class StripsLocalisation:
     return None
 
 
-  def evalDiff( self, p1, p2 ):
+  def evalDiff( self, p1, p2, oriented=True ):
     (dx,dy,da) = p1.sub( p2 )
-    return math.hypot(dx,dy)+abs(normalizeAnglePIPI(da)/math.radians(100))
+    da = abs(normalizeAnglePIPI(da))
+    if not oriented and da > math.pi/2.:
+      da = math.pi - da
+    return math.hypot(dx,dy)+da/math.radians(100)
 
   def bestMatch( self, pose, poseArr ):
     ret = None
@@ -81,4 +139,8 @@ class StripsLocalisation:
     if len(frameStrips) > 0:
       sPose = pose.add( frameStrips[0] )
       self.refIndex = self.bestMatch( sPose, self.ref )
+
+    if self.lastFramePose:
+      self.mclStep( pose.sub( self.lastFramePose ), frameStrips )
+    self.lastFramePose = pose
 
