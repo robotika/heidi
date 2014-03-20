@@ -23,7 +23,7 @@ class StripsLocalisation:
     distStep = 0.4
     # PATH_TURN LEFT
     for i in xrange(8):
-      self.ref.append( p )
+      self.ref.append( p.add(Pose(0,0,-angleStep/2.0)) )
       p = p.add( Pose( distStep, 0, angleStep) )
     # PATH_STRAIGHT
     for i in xrange(10):
@@ -31,7 +31,7 @@ class StripsLocalisation:
       p = p.add( Pose(distStep, 0.0, 0) )
     # PATH_TURN RIGHT
     for i in xrange(16):
-      self.ref.append( p )
+      self.ref.append( p.add(Pose(0,0,angleStep/2.0)) )
       p = p.add( Pose( distStep, 0, -angleStep) )
     # PATH_STRAIGHT
     for i in xrange(10):
@@ -39,11 +39,11 @@ class StripsLocalisation:
       p = p.add( Pose(distStep, 0.0, 0) )
     # PATH_TURN LEFT
     for i in xrange(8):
-      self.ref.append( p )
+      self.ref.append( p.add(Pose(0,0,-angleStep/2.0)) )
       p = p.add( Pose( distStep, 0, angleStep) )
 
     self.random = random.Random(0).uniform
-    cov=(0.1, 0.1, math.radians(25)) # TODO better estimate
+    cov=(0.2, 0.2, math.radians(25)) # TODO better estimate
     self.samples = [ Pose(*tuple([v+self.random(-c,c) for v,c in zip([0,0,0],cov)])) for i in range(numSamples)] 
 
   def evalMap( self, pose, frameStrips ):
@@ -55,12 +55,12 @@ class StripsLocalisation:
         foundAny = True
         if len(frameStrips) > 0:
           val = min([self.evalDiff(img, fs, oriented=False) for fs in frameStrips])
-          ret *= math.exp( val ) # is it good idea???
+          ret *= math.exp( -val ) # is it good idea???
         else:
           # missing detection
           ret *= 0.1
     if not foundAny and len(frameStrips) > 0:
-      ret *=0.5
+      ret *=0.05
     return ret
 
   def resample( self, weights ):
