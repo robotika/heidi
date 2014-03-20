@@ -86,6 +86,9 @@ def competeAirRace( drone, desiredSpeed = 0.4, desiredHeight = 1.5, desiredSpeed
   maxVideoDelay = 0.0
   maxControlGap = 0.0
   loc = StripsLocalisation( numSamples = 100 )
+  viewlog.dumpObstacles( [[(r.x-0.15*math.cos(r.heading), r.y-0.15*math.sin(r.heading)), 
+                           (r.x+0.15*math.cos(r.heading), r.y+0.15*math.sin(r.heading))] for r in loc.ref] )
+
   try:
     drone.wait(1.0)
     drone.setVideoChannel( front=False )    

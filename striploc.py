@@ -17,14 +17,30 @@ class StripsLocalisation:
     self.refIndex = 0
     self.ref = []
     p = Pose()
+    radius = 1.5
+    crossing = 2.45
+    angleStep = 0.412/radius #(math.pi-math.asin(radius/crossing))/8.
+    distStep = 0.4
     # PATH_TURN LEFT
-    for i in xrange(10): # TODO fix number
+    for i in xrange(8):
       self.ref.append( p )
-      p = p.add( Pose(0.4, 0.1, math.radians(18)) ) # TODO dist and angle
+      p = p.add( Pose( distStep, 0, angleStep) )
     # PATH_STRAIGHT
-    for i in xrange(10): # TODO fix number
+    for i in xrange(10):
       self.ref.append( p )
-      p = p.add( Pose(0.4, 0.0, 0) )
+      p = p.add( Pose(distStep, 0.0, 0) )
+    # PATH_TURN RIGHT
+    for i in xrange(16):
+      self.ref.append( p )
+      p = p.add( Pose( distStep, 0, -angleStep) )
+    # PATH_STRAIGHT
+    for i in xrange(10):
+      self.ref.append( p )
+      p = p.add( Pose(distStep, 0.0, 0) )
+    # PATH_TURN LEFT
+    for i in xrange(8):
+      self.ref.append( p )
+      p = p.add( Pose( distStep, 0, angleStep) )
 
     self.random = random.Random(0).uniform
     cov=(0.1, 0.1, math.radians(25)) # TODO better estimate
