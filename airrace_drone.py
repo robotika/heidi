@@ -146,6 +146,8 @@ def competeAirRace( drone, desiredSpeed = 0.4, desiredHeight = 1.5, desiredSpeed
             print "!!!!!!!! COMPASS FAILURE !!!!!!!!"
           pathType = loc.pathType
         print "FRAME", frameNumber/15, pathType
+        if drone.battery < 10:
+          print "BATTERY LOW!", drone.battery
 
         if loc.pathPose:
           sPose = loc.pathPose
