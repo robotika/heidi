@@ -2,7 +2,7 @@
 """
   AirRace competition in Vienna. See robotchallenge.org
   usage:
-       ./airrace.py <image or video file> [<PaVE frame number>]
+       ./airrace.py <image or video file> [<PaVE frame number>|<src_cv2_ refrence log file>]
 """
 # for introduction of cv2 for Python have a look at
 # http://docs.opencv.org/trunk/doc/py_tutorials/py_tutorials.html
@@ -144,7 +144,7 @@ def testVideo( filename ):
       break
   cap.release()
 
-def testPaVEVideo( filename, onlyFrameNumber=None ):
+def testPaVEVideo( filename, onlyFrameNumber=None, refLog=None ):
   f = open( filename, "rb" )
   data = f.read(10000)
   pave = PaVE()
@@ -165,7 +165,16 @@ def testPaVEVideo( filename, onlyFrameNumber=None ):
         if ret:
           global g_filename
           g_filename = "tmp_%04d.jpg" % (frameNumber( header )/FRAMES_PER_INDEX)
-          print frameNumber( header )/FRAMES_PER_INDEX,  filterRectangles(processFrame( frame, debug=True ), minWidth=150/2)
+          result = processFrame( frame, debug=True )
+          if refLog != None:
+            print refLog.readline().strip()
+            (oldFrameNumber, oldTimestamp), oldResult = eval(refLog.readline().strip())
+            assert oldFrameNumber == frameNumber(header), (oldFrameNumber, frameNumber(header))
+            assert oldTimestamp == timestamp(header), (oldTimestamp, timestamp(header))
+            print ((frameNumber(header), timestamp(header)), result)
+            # assert oldResult == result, oldResult # potential difference linux/windows
+          else:
+            print frameNumber( header )/FRAMES_PER_INDEX,  filterRectangles(result, minWidth=150/2)
         if onlyFrameNumber:
           cv2.waitKey(0)
           return
@@ -174,6 +183,9 @@ def testPaVEVideo( filename, onlyFrameNumber=None ):
     if cv2.waitKey(1) & 0xFF == ord('q'):
       break
     data = f.read(10000)
+  if refLog != None: # complete termination line
+    print refLog.readline().strip()
+
 
 def isParrotVideo( filename ):
   return open( filename ).read(4) == "PaVE"
@@ -188,7 +200,10 @@ if __name__ == "__main__":
   else:
     if isParrotVideo( filename ):
       if len(sys.argv) > 2:
-        testPaVEVideo( filename, onlyFrameNumber=int(sys.argv[2]) )
+        if "src_cv2_" in sys.argv[2]:
+          testPaVEVideo( filename, refLog=open(sys.argv[2]) )
+        else:
+          testPaVEVideo( filename, onlyFrameNumber=int(sys.argv[2]) )
       else:
         testPaVEVideo( filename )
     else:
