@@ -45,6 +45,7 @@ class StripsLocalisation:
     self.random = random.Random(0).uniform
     cov=(1.2, 1.2, math.radians(25)) # TODO better estimate
     self.samples = [ Pose(*tuple([v+self.random(-c,c) for v,c in zip([0,0,0],cov)])) for i in range(numSamples)] 
+    self.ssi = 0 # Selected Sample Index
 
   def evalMap( self, pose, frameStrips ):
     ret = 1.0

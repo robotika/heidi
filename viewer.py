@@ -90,7 +90,10 @@ def loadData( filename ):
     elif arr[0] == "Beacon":
       assert( int(arr[1]) == 1 )
       index = len(arr)>4 and int(arr[4]) or 0
-      scans.append( ( ( float(arr[2]), float(arr[3]), 0.0 ), -1.0-index/10.0) )      
+      if len(arr) == 7:
+        scans.append( ( ( float(arr[2]), float(arr[3]), 0.0 ), -1.0-index/10.0, [int(c) for c in arr[-3:]]) ) # color param
+      else:
+        scans.append( ( ( float(arr[2]), float(arr[3]), 0.0 ), -1.0-index/10.0) )      
     elif arr[0] == "Puck":
       assert( int(arr[1]) == 1 )
       scans.append( ( ( float(arr[2]), float(arr[3]), 0.0 ), -2.0) )      
@@ -127,7 +130,12 @@ def drawCompass( foreground, scanArr ):
     pygame.draw.line( foreground, (0,0,255), scr(x,y), scr(x+d*math.cos(heading),y+d*math.sin(heading)),5)
 
 def drawScans( foreground, scans, shouldDrawSensors, shouldDrawBeacons ):
-  for ((x,y,heading),range) in scans:
+  for row in scans:
+    color = None
+    if len(row) == 2:
+      ((x,y,heading),range) = row
+    else:
+      ((x,y,heading),range, color) = row
     if range >= 0:
       if range > 0:
         if shouldDrawSensors:
@@ -141,7 +149,10 @@ def drawScans( foreground, scans, shouldDrawSensors, shouldDrawBeacons ):
     elif range > -1.99:
       # beacons (not nice)
       if shouldDrawBeacons:
-        pygame.draw.circle( foreground, (255,0,int((-1-range)*255*3.3)), scr(x,y), 6 )
+        if color == None:
+          pygame.draw.circle( foreground, (255,0,int((-1-range)*255*3.3)), scr(x,y), 6 )
+        else:
+          pygame.draw.circle( foreground, color, scr(x,y), 6 )
     elif  range > -2.5:
       # pucks (not nice2)
       pygame.draw.circle( foreground, (255,0,168), scr(x,y), 3 )

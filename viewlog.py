@@ -53,10 +53,13 @@ def dumpPuck( coord ):
   if viewLogFile:
     viewLogFile.write( "Puck 1 %.2f %.2f\n" % coord )
 
-def dumpBeacon( coord, index=None ):
+def dumpBeacon( coord, index=None, color=None ):
   if viewLogFile:
     if index is None:
-      viewLogFile.write( "Beacon 1 %.2f %.2f\n" % coord )
+      if color == None:
+        viewLogFile.write( "Beacon 1 %.2f %.2f\n" % coord )
+      else:
+        viewLogFile.write( "Beacon 1 %.2f %.2f %d %d %d\n" % tuple(list(coord)+list(color)) )
     else:
       viewLogFile.write( "Beacon 1 %.2f %.2f %d\n" % (coord[0], coord[1], index) )
 

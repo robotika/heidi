@@ -136,6 +136,7 @@ def competeAirRace( drone, desiredSpeed = 0.4, desiredHeight = 1.5, desiredSpeed
 
         positionReliability = loc.updateFrame( Pose( *oldPose ), [stripPose( r, highResolution=drone.videoHighResolution ) for r in rects] )
         viewlog.dumpSamples( loc.samples )
+        viewlog.dumpBeacon( tuple(loc.samples[loc.ssi])[:2], color=(0,255,0) )
         if loc.pathType != pathType:
           print "TRANS", pathType, "->", loc.pathType
           if pathType == PATH_TURN_LEFT and loc.pathType == PATH_STRAIGHT:
