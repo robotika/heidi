@@ -37,7 +37,7 @@ class StripsLocalisationTest( unittest.TestCase ):
     self.assertEqual( loc.bestMatch( Pose(1,2,0), [Pose(), Pose(1,0,0), Pose(2,0,0)] ), 1 )
 
   def testReference( self ):
-    turnStep = Pose( 0.4, 0.1, math.radians(18) ) # TODO proper values
+    turnStep = Pose( 0.4, 0.1, math.radians(15) ) # TODO proper values
     loc = StripsLocalisation()
     loc.updateFrame( Pose(0,0,0), [Pose(0,0,0)] ) # start strip
     self.assertEqual( loc.refIndex, 0 )

@@ -134,7 +134,7 @@ def competeAirRace( drone, desiredSpeed = 0.4, desiredHeight = 1.5, desiredSpeed
             break
         poseHistory = poseHistory[:toDel]
 
-        loc.updateFrame( Pose( *oldPose ), [stripPose( r, highResolution=drone.videoHighResolution ) for r in rects] )
+        positionReliability = loc.updateFrame( Pose( *oldPose ), [stripPose( r, highResolution=drone.videoHighResolution ) for r in rects] )
         viewlog.dumpSamples( loc.samples )
         if loc.pathType != pathType:
           print "TRANS", pathType, "->", loc.pathType
@@ -145,7 +145,7 @@ def competeAirRace( drone, desiredSpeed = 0.4, desiredHeight = 1.5, desiredSpeed
           if drone.magneto[:3] == magnetoOnStart:
             print "!!!!!!!! COMPASS FAILURE !!!!!!!!"
           pathType = loc.pathType
-        print "FRAME", frameNumber/15, pathType
+        print "FRAME", frameNumber/15, pathType, "%0.3f" % positionReliability
         if drone.battery < 10:
           print "BATTERY LOW!", drone.battery
 

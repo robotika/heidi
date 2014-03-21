@@ -43,7 +43,7 @@ class StripsLocalisation:
       p = p.add( Pose( distStep, 0, angleStep) )
 
     self.random = random.Random(0).uniform
-    cov=(0.2, 0.2, math.radians(25)) # TODO better estimate
+    cov=(1.2, 1.2, math.radians(25)) # TODO better estimate
     self.samples = [ Pose(*tuple([v+self.random(-c,c) for v,c in zip([0,0,0],cov)])) for i in range(numSamples)] 
 
   def evalMap( self, pose, frameStrips ):
@@ -55,7 +55,9 @@ class StripsLocalisation:
         foundAny = True
         if len(frameStrips) > 0:
           val = min([self.evalDiff(img, fs, oriented=False) for fs in frameStrips])
-          ret *= math.exp( -val ) # is it good idea???
+#          if val < 0.1:
+#            print val
+          ret *= max(0.001, 1.0-val)**2 #math.exp( -val ) # is it good idea???
         else:
           # missing detection
           ret *= 0.1
@@ -78,20 +80,23 @@ class StripsLocalisation:
         i += 1
         seed += step
     self.samples = newSet
+    return weightSum
 
   def mclStep( self, poseStep, frameStrips ):
     dx, dy, da = poseStep
+    varDist = 0.3
+    varAngle = 0.1
     newSamples = []
     for s in self.samples:
       # TODO tune distribution
-      newSamples.append( s.add( Pose(dx+dx*self.random(-0.1,0.1), dy+dy*self.random(-0.1,0.1), da+da*self.random(-0.1,0.1))))
+      newSamples.append( s.add( Pose(dx+dx*self.random(-varDist,varDist), dy+dy*self.random(-varDist,varDist), da+da*self.random(-varAngle,varAngle))))
     self.samples = newSamples 
 
     weights = []
     for s in self.samples:
       weights.append( self.evalMap( s, frameStrips ) )
 
-    self.resample( weights )
+    return self.resample( weights )
 
 
 
@@ -156,7 +161,9 @@ class StripsLocalisation:
       sPose = pose.add( frameStrips[0] )
       self.refIndex = self.bestMatch( sPose, self.ref )
 
+    ret = 0.0
     if self.lastFramePose:
-      self.mclStep( pose.sub( self.lastFramePose ), frameStrips )
+      ret = self.mclStep( pose.sub( self.lastFramePose ), frameStrips )
     self.lastFramePose = pose
+    return ret
 
