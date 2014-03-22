@@ -53,7 +53,9 @@ def processFrame( frame, debug=False ):
       box = cv2.cv.BoxPoints(rect)
       box = np.int0(box)
       cv2.drawContours( frame,[box],0,(255,0,0),2)
-    for rect in filterRectangles(result, minWidth=150/2):
+  result = filterRectangles([((int(x),int(y)),(int(w),int(h)),int(a)) for ((x,y),(w,h),a) in result], minWidth=150/2)
+  if debug:
+    for rect in result:
       box = cv2.cv.BoxPoints(rect)
       box = np.int0(box)
       cv2.drawContours( frame,[box],0,(0,0,255),2)
@@ -61,7 +63,7 @@ def processFrame( frame, debug=False ):
     # save image for simpler results review, angle is used as hash for search sub-sequence
     if g_filename:
       cv2.imwrite( g_filename, frame )
-  return [((int(x),int(y)),(int(w),int(h)),int(a)) for ((x,y),(w,h),a) in result]
+  return result
 
 def filterRectangles( rects, minWidth=150 ):
   ret = []
@@ -176,7 +178,7 @@ def testPaVEVideo( filename, onlyFrameNumber=None, refLog=None ):
             print ((frameNumber(header), timestamp(header)), result)
             # assert oldResult == result, oldResult # potential difference linux/windows
           else:
-            print frameNumber( header )/FRAMES_PER_INDEX,  filterRectangles(result, minWidth=150/2)
+            print frameNumber( header )/FRAMES_PER_INDEX,  result
         if onlyFrameNumber:
           cv2.waitKey(0)
           return

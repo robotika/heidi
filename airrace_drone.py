@@ -116,10 +116,8 @@ def competeAirRace( drone, desiredSpeed = 0.4, desiredHeight = 1.5, desiredSpeed
         (frameNumber, timestamp), lastRect = drone.lastImageResult
         viewlog.dumpCamera( "tmp_%04d.jpg" % (frameNumber/15,), 0 )
 
-        if drone.videoHighResolution:
-          rects = filterRectangles( lastRect, minWidth=150 )
-        else:
-          rects = filterRectangles( lastRect, minWidth=75 )
+        rects = filterRectangles( lastRect, minWidth=75 ) # DEPRECATED - used for logs only (!)
+        # rects = lastRect[:] # refactoring - filtering is now part of video processing
 
         # keep history small
         videoTime = correctTimePeriod( timestamp/1000., ref=drone.time )
