@@ -145,6 +145,15 @@ def competeAirRace( drone, desiredSpeed = 0.4, desiredHeight = 1.5, desiredSpeed
             print "!!!!!!!! COMPASS FAILURE !!!!!!!!"
           pathType = loc.pathType
         print "FRAME", frameNumber/15, pathType, "%0.3f" % positionReliability
+        a = oldPose[2]+math.radians(-90)
+        # 640, 360
+        dx = (640/4)*math.cos(a)+(360/4)*math.sin(a)-160
+        dy = -(640/4)*math.sin(a)+(360/4)*math.cos(a)-90
+        scale = 100 #250 # 150pixels is 300mm -> 500 pixels = 1m
+        print Pose(*oldPose)
+        print "tmp_%04d.jpg,%d,%d,%d" % (frameNumber/15, 600+int(dx+scale*oldPose[0]), 200+int(dy-scale*oldPose[1]), int(-90+math.degrees(oldPose[2])))
+#        if frameNumber/15 > 25:
+#          sys.exit(0)
         if drone.battery < 10:
           print "BATTERY LOW!", drone.battery
 
