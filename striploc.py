@@ -107,7 +107,7 @@ class StripsLocalisation:
 
   def diff2pathType( self, dx, dy, da ):
     da = normalizeAnglePIPI(da)
-    if (0.25 < dx < 0.45) and abs(da) < math.radians(50):
+    if (0.25 < dx < 0.48) and abs(da) < math.radians(50):
       if abs(da) < math.radians(10):
         return PATH_STRAIGHT
       elif da > 0:
@@ -134,6 +134,7 @@ class StripsLocalisation:
   def updateFrame( self, pose, frameStrips, verbose=False ):
     if verbose:
       print pose, [str(p) for p in frameStrips]
+    updated = False
     for i in xrange(len(frameStrips)):
       for j in xrange(len(frameStrips)):
         if i != j:
@@ -142,21 +143,31 @@ class StripsLocalisation:
           if pt:
             self.pathType = pt
             self.pathPose = pose.add( frameStrips[i] ) # also j should be OK
+            updated = True
             break
 
-    if len(frameStrips) == 1 and self.lastStripPose != None:
-      sPose = pose.add( frameStrips[0] )
-      (dx,dy,da) = sPose.sub( self.lastStripPose )
-      pt = self.diff2pathType( dx, dy, da )
-      if pt:
-        self.pathType = pt
-        self.pathPose = sPose
+    if (len(frameStrips) >= 1 or not updated) and self.lastStripPose != None:
+      for fs in frameStrips:
+        for lsp in self.lastStripPose:
+          sPose = pose.add( fs )
+          (dx,dy,da) = sPose.sub( lsp )
+          pt = self.diff2pathType( dx, dy, da )
+          if pt:
+            self.pathType = pt
+            self.pathPose = sPose
+            updated = True
+            break
 
-    for fs in frameStrips:
-      sPose = pose.add( fs )
-      if verbose and self.lastStripPose != None:
-        print sPose.sub( self.lastStripPose )
-      self.lastStripPose = sPose
+    if not updated and verbose:
+      print "not updated"
+
+    if len(frameStrips) > 0:
+      self.lastStripPose = []
+      for fs in frameStrips:
+        sPose = pose.add( fs )
+        if verbose and self.lastStripPose != None:
+          print sPose.sub( self.lastStripPose )
+        self.lastStripPose.append( sPose )
 
     if len(frameStrips) > 0:
       sPose = pose.add( frameStrips[0] )

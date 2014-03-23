@@ -62,7 +62,25 @@ class StripsLocalisationTest( unittest.TestCase ):
     self.assertNotEqual( loc.samples[0], loc.samples[1] )
     loc.mclStep( Pose(1.0, 0, 0), [] )
 
+  def testMultistripRobustness( self ):
+    loc = StripsLocalisation( numSamples=1 )
+    loc.updateFrame( Pose(2.33, -3.38, math.radians(69)), [Pose(-0.04, 0.03, math.radians(-2))] )
+    loc.updateFrame( Pose(2.42, -3.02, math.radians(68)), [Pose(0.07, -0.06, math.radians(-4)), Pose(0.25, -0.47, math.radians(69))] )
+    self.assertEqual( loc.pathType, PATH_STRAIGHT )
 
+  def testFilterWrongStrips( self ):
+    loc = StripsLocalisation( numSamples=1 )
+    loc.pathType = PATH_TURN_RIGHT # just enforce different value than L
+    loc.updateFrame( Pose(-0.69, -0.98, math.radians(252)), [Pose(0.07, 0.12, math.radians(10)), Pose(0.30, -0.48, math.radians(-61))] )
+    loc.updateFrame( Pose(-0.71, -1.38, math.radians(268)), [Pose(-0.28, -0.69, math.radians(-77)), Pose(0.14, 0.13, math.radians(8))] )
+    self.assertEqual( loc.pathType, PATH_TURN_LEFT )
+
+  def testTrippleStripPreference( self ):
+    # meta_140320_165035.log:270
+    loc = StripsLocalisation( numSamples=1 )
+#    loc.updateFrame( Pose(3.30, 1.97, math.radians(257)), [Pose(-0.17, -0.28, math.radians(13)), Pose(0.12, -0.25, math.radians(27))] )
+    loc.updateFrame( Pose(3.48, 1.43, math.radians(269)), [Pose(-0.20, -0.38, math.radians(33)), Pose(0.04, -0.23, math.radians(48)), Pose(0.29, 0.06, math.radians(49))] )
+    self.assertEqual( loc.pathType, PATH_STRAIGHT )
 
 if __name__ == "__main__":
   unittest.main() 
