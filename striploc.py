@@ -146,7 +146,7 @@ class StripsLocalisation:
             updated = True
             break
 
-    if (len(frameStrips) >= 1 or not updated) and self.lastStripPose != None:
+    if (len(frameStrips) >= 1 and not updated) and self.lastStripPose != None:
       for fs in frameStrips:
         for lsp in self.lastStripPose:
           sPose = pose.add( fs )
@@ -166,7 +166,7 @@ class StripsLocalisation:
       for fs in frameStrips:
         sPose = pose.add( fs )
         if verbose and self.lastStripPose != None:
-          print sPose.sub( self.lastStripPose )
+          print [str(sPose.sub( lsp )) for lsp in self.lastStripPose]
         self.lastStripPose.append( sPose )
 
     if len(frameStrips) > 0:

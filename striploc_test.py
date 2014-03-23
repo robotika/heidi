@@ -78,7 +78,7 @@ class StripsLocalisationTest( unittest.TestCase ):
   def testTrippleStripPreference( self ):
     # meta_140320_165035.log:270
     loc = StripsLocalisation( numSamples=1 )
-#    loc.updateFrame( Pose(3.30, 1.97, math.radians(257)), [Pose(-0.17, -0.28, math.radians(13)), Pose(0.12, -0.25, math.radians(27))] )
+    loc.updateFrame( Pose(3.30, 1.97, math.radians(257)), [Pose(-0.17, -0.28, math.radians(13)), Pose(0.12, -0.25, math.radians(27))] )
     loc.updateFrame( Pose(3.48, 1.43, math.radians(269)), [Pose(-0.20, -0.38, math.radians(33)), Pose(0.04, -0.23, math.radians(48)), Pose(0.29, 0.06, math.radians(49))] )
     self.assertEqual( loc.pathType, PATH_STRAIGHT )
 
