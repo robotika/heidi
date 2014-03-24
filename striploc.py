@@ -121,7 +121,7 @@ class StripsLocalisation:
 
   def diff2pathType( self, dx, dy, da ):
     da = normalizeAnglePIPI(da)
-    if (0.25 < dx < 0.48) and abs(da) < math.radians(50):
+    if (0.25 < dx < 0.48) and abs(da) < math.radians(50) and (abs(dy) < 0.25):
       if abs(da) < math.radians(10):
         return PATH_STRAIGHT
       elif da > 0:

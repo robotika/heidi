@@ -83,6 +83,13 @@ class StripsLocalisationTest( unittest.TestCase ):
     self.assertEqual( loc.pathType, PATH_STRAIGHT )
     self.assertTrue( loc.pathUpdated )
 
+  def testTransitionLR( self ):
+    # meta_140320_165035.log:268 (similar case also frame=66)
+    loc = StripsLocalisation( numSamples=1 )
+    loc.updateFrame( Pose(3.03, 2.21, math.radians(269)), [Pose(-0.22, 0.10, math.radians(1)), Pose(0.15, 0.16, math.radians(16)), Pose(0.34, 0.80, math.radians(-32))] )
+    self.assertEqual( loc.pathType, PATH_TURN_LEFT )
+    self.assertTrue( loc.pathUpdated )
+
 if __name__ == "__main__":
   unittest.main() 
 
