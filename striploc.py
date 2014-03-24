@@ -43,7 +43,7 @@ class StripsLocalisation:
       p = p.add( Pose( distStep, 0, angleStep) )
 
     self.random = random.Random(0).uniform
-    cov=(1.2, 1.2, math.radians(25)) # TODO better estimate
+    cov=(0.5, 0.5, math.radians(15)) # TODO better estimate
     self.samples = [ Pose(*tuple([v+self.random(-c,c) for v,c in zip([0,0,0],cov)])) for i in range(numSamples)] 
     self.ssi = 0 # Selected Sample Index
 
@@ -52,7 +52,7 @@ class StripsLocalisation:
     foundAny = False
     for strip in self.ref:
       img = strip.sub(pose)
-      if abs(img.x) < 0.5 and abs(img.y) < 0.7: # TODO correct camera view
+      if abs(img.x) < 0.864/2. and abs(img.y) < 1.536/2.: # TODO correct camera view
         foundAny = True
         if len(frameStrips) > 0:
           val = min([self.evalDiff(img, fs, oriented=False) for fs in frameStrips])
@@ -65,6 +65,19 @@ class StripsLocalisation:
     if not foundAny and len(frameStrips) > 0:
       ret *=0.05
     return ret
+
+  def evalMapHack( self, pose, frameStrips ):
+    ret = 1.0
+    for fs in frameStrips:
+      sPose = pose.add( fs )
+      i = self.bestMatch( sPose, self.ref )
+      img = sPose.sub(self.ref[i])
+      if abs(img.x) < 0.864/2. and abs(img.y) < 1.536/2.:
+        val = self.evalDiff(img, fs, oriented=False)
+        ret *= max(0.001, 1.0-val)**2 #math.exp( -val ) # is it good idea???
+        print i,
+    print
+    return 1.0
 
   def resample( self, weights ):
     "replace internal samples based on weights "
@@ -85,12 +98,12 @@ class StripsLocalisation:
 
   def mclStep( self, poseStep, frameStrips ):
     dx, dy, da = poseStep
-    varDist = 0.3
-    varAngle = 0.1
+    varDist = 0.1
+    varAngle = math.radians(3) # with absolute compass, independent on distance
     newSamples = []
     for s in self.samples:
       # TODO tune distribution
-      newSamples.append( s.add( Pose(dx+dx*self.random(-varDist,varDist), dy+dy*self.random(-varDist,varDist), da+da*self.random(-varAngle,varAngle))))
+      newSamples.append( s.add( Pose(dx+dx*self.random(-varDist,varDist), dy+dy*self.random(-varDist,varDist), da+self.random(-varAngle,varAngle))))
     self.samples = newSamples 
 
     weights = []
