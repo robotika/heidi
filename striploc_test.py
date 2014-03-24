@@ -105,6 +105,9 @@ class StripsLocalisationTest( unittest.TestCase ):
     # 185: 0.152514448606 -0.100774758903 -1.427 (bad middle strip)
     # 234: 0.210778241227 -0.0182408657026 359.693
     
+  def testRefCircleLine( self ):
+    loc = StripsLocalisation( numSamples=1 )
+    self.assertTrue( loc.getRefCircleLine( Pose() ), (None, None) )
 
 if __name__ == "__main__":
   unittest.main() 

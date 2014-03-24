@@ -4,8 +4,14 @@
 from pose import Pose
 from airrace import PATH_TURN_LEFT, PATH_TURN_RIGHT, PATH_STRAIGHT
 from ardrone2 import normalizeAnglePIPI # TODO refactoring
+from line import Line
+
 import math
 import random
+
+REF_CIRCLE_RADIUS = 1.4 # TODO measure in real arena!
+REF_LINE_CROSSING_ANGLE = math.radians(50) # angle for selection of proper strip
+
 
 class StripsLocalisation:
   def __init__( self, numSamples = 10 ):
@@ -15,6 +21,8 @@ class StripsLocalisation:
     self.pathType = PATH_TURN_LEFT
     self.pathPose = None
     self.pathUpdated = False
+    self.refCircle = None
+    self.refLine = None
     self.refIndex = 0
     self.ref = []
     p = Pose()
@@ -204,9 +212,30 @@ class StripsLocalisation:
       sPose = pose.add( frameStrips[0] )
       self.refIndex = self.bestMatch( sPose, self.ref )
 
+
+    if self.pathPose:
+      sPose = self.pathPose
+      if self.pathType == PATH_TURN_LEFT:
+        circCenter = sPose.add( Pose(0.0, REF_CIRCLE_RADIUS, 0 )).coord()
+        self.refCircle = circCenter, REF_CIRCLE_RADIUS
+      elif self.pathType == PATH_TURN_RIGHT:
+        circCenter = sPose.add( Pose(0.0, -REF_CIRCLE_RADIUS, 0 )).coord()
+        self.refCircle = circCenter, REF_CIRCLE_RADIUS
+      else:
+        self.refCircle = None
+      if self.pathType == PATH_STRAIGHT:
+        if self.refLine == None or abs(normalizeAnglePIPI( self.refLine.angle - sPose.heading )) < REF_LINE_CROSSING_ANGLE:
+          self.refLine = Line( (sPose.x-0.15*math.cos(sPose.heading), sPose.y-0.15*math.sin(sPose.heading)), 
+                                   (sPose.x+0.15*math.cos(sPose.heading), sPose.y+0.15*math.sin(sPose.heading)) )
+      else:
+        self.refLine = None
+
     ret = 0.0
     if self.lastFramePose:
       ret = self.mclStep( pose.sub( self.lastFramePose ), frameStrips )
     self.lastFramePose = pose
     return ret
 
+  def getRefCircleLine( self, pose ):
+    "return best fitting circle/line for given position (which is now ignored)"
+    return self.refCircle, self.refLine
