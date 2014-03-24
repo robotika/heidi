@@ -14,6 +14,7 @@ class StripsLocalisation:
     self.lastFramePose = None # drone pose when the last image was taken
     self.pathType = PATH_TURN_LEFT
     self.pathPose = None
+    self.pathUpdated = False
     self.refIndex = 0
     self.ref = []
     p = Pose()
@@ -147,7 +148,7 @@ class StripsLocalisation:
   def updateFrame( self, pose, frameStrips, verbose=False ):
     if verbose:
       print pose, [str(p) for p in frameStrips]
-    updated = False
+    self.pathUpdated = False
     for i in xrange(len(frameStrips)):
       for j in xrange(len(frameStrips)):
         if i != j:
@@ -156,10 +157,10 @@ class StripsLocalisation:
           if pt:
             self.pathType = pt
             self.pathPose = pose.add( frameStrips[i] ) # also j should be OK
-            updated = True
+            self.pathUpdated = True
             break
 
-    if (len(frameStrips) >= 1 and not updated) and self.lastStripPose != None:
+    if (len(frameStrips) >= 1 and not self.pathUpdated) and self.lastStripPose != None:
       for fs in frameStrips:
         for lsp in self.lastStripPose:
           sPose = pose.add( fs )
@@ -168,10 +169,10 @@ class StripsLocalisation:
           if pt:
             self.pathType = pt
             self.pathPose = sPose
-            updated = True
+            self.pathUpdated = True
             break
 
-    if not updated and verbose:
+    if not self.pathUpdated and verbose:
       print "not updated"
 
     if len(frameStrips) > 0:
