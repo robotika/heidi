@@ -44,8 +44,10 @@ def launch(cmd_args, robotFactory, task, configFn = None, canArgs={}):
     return
 
   # TODO unified launcher, similar to Eduro
-  if len(cmd_args) > 3 and cmd_args[3] == 'F':
+  if len(cmd_args) > 3 and cmd_args[3] in ['F','FL']:
     ardrone2.g_checkAssert = False
+  if len(cmd_args) > 3 and cmd_args[3] == 'FL':
+    ardrone2.g_relogCmd = True
   replayLog = None
   metaLog = None
   console = None

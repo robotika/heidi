@@ -53,6 +53,8 @@ COLLISION_LIMIT_ANGLE = math.radians(10.0)
 # global var
 global g_checkAssert
 g_checkAssert = True # use command 'F' to disable it
+global g_relogCmd
+g_relogCmd = False # use command 'FL' to re-log commands (for next step refactoring)
 
 def normalizeAnglePIPI( angle ):
   while angle < -math.pi:
@@ -119,10 +121,13 @@ class MyLogs:
     else:
       self.f = open(filename, "rb")
     self.verbose = verbose
-    self.atcmd = None # default without checking
+    self.atcmd = None # default without checking    
     print "METALOG", metaLog
     if metaLog:
       self.atcmd = open( metaLog.getLog("atcmd:"), "rb" )
+    self.relogCmd = None
+    if g_relogCmd:
+      self.relogCmd = open( "atcmd.txt", "wb" )
 
   def update( self, cmd ):
     "send command and return navdata"
@@ -132,6 +137,9 @@ class MyLogs:
     if self.atcmd:
       # verify AT command
       fileCmd = self.atcmd.read(len(cmd))
+      if self.relogCmd:
+        self.relogCmd.write(cmd)
+        self.relogCmd.flush()
       if g_checkAssert:
         assert fileCmd==cmd, "Diff from file: %s, cmd %s" % (fileCmd, cmd)
     data = self.f.read(16) # header
