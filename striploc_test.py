@@ -90,6 +90,22 @@ class StripsLocalisationTest( unittest.TestCase ):
     self.assertEqual( loc.pathType, PATH_TURN_LEFT )
     self.assertTrue( loc.pathUpdated )
 
+  def testIsSameStrip( self ):
+    loc = StripsLocalisation( numSamples=1 )
+    self.assertTrue( loc.isSameStrip( Pose(0,0,0), Pose(0.15,0.05,math.radians(1))))
+    self.assertFalse( loc.isSameStrip( Pose(0,1.0,0), Pose(0.3,0.05,math.radians(1))))
+    # real examples
+    # 9:  0.186620639305 0.0527981159447 -0.81
+    # 35: 0.170391659423 0.0771475958297 -2.136
+    # 41: 0.156540370398 -0.00496615873208 4.462
+    
+    # FAILED:
+    # 123: 0.14906722044 -0.118410346849 1.394
+    # 174: 0.219441940085 0.0828970285437 0.937
+    # 185: 0.152514448606 -0.100774758903 -1.427 (bad middle strip)
+    # 234: 0.210778241227 -0.0182408657026 359.693
+    
+
 if __name__ == "__main__":
   unittest.main() 
 

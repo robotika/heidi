@@ -144,7 +144,7 @@ def competeAirRace( drone, desiredSpeed = 0.4, desiredHeight = 1.5, desiredSpeed
           if drone.magneto[:3] == magnetoOnStart:
             print "!!!!!!!! COMPASS FAILURE !!!!!!!!"
           pathType = loc.pathType
-        print "FRAME", frameNumber/15, pathType, "%0.3f" % positionReliability
+        print "FRAME", frameNumber/15, pathType, "%0.3f" % positionReliability, loc.pathUpdated
 #        a = oldPose[2]+math.radians(-90)
 #        # 640, 360
 #        dx = (640/4)*math.cos(a)+(360/4)*math.sin(a)-160

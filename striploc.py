@@ -131,6 +131,14 @@ class StripsLocalisation:
     return None
 
 
+  def isSameStrip( self, pose1, pose2 ):
+    dx,dy,da = pose1.sub(pose2)
+    da = normalizeAnglePIPI(da)
+    if abs(dx) < 0.2 and abs(dy) < 0.1 and abs(da) < math.radians(10):
+      return True
+    return False
+
+
   def evalDiff( self, p1, p2, oriented=True ):
     (dx,dy,da) = p1.sub( p2 )
     da = abs(normalizeAnglePIPI(da))
@@ -172,8 +180,17 @@ class StripsLocalisation:
             self.pathUpdated = True
             break
 
-    if not self.pathUpdated and verbose:
-      print "not updated"
+    if not self.pathUpdated:
+      if verbose:
+        print "not updated"
+      if len(frameStrips) == 1 and self.lastStripPose != None:
+        fs = frameStrips[0]
+        for lsp in self.lastStripPose:
+          sPose = pose.add( fs )
+          if self.isSameStrip( sPose, lsp ):
+            # the self.pathType is the same only the pose is updated
+            self.pathPose = sPose
+            self.pathUpdated = True
 
     if len(frameStrips) > 0:
       self.lastStripPose = []
