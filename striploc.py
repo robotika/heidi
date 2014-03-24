@@ -171,10 +171,15 @@ class StripsLocalisation:
           (dx,dy,da) = frameStrips[i].sub(frameStrips[j])
           pt = self.diff2pathType( dx, dy, da )
           if pt:
-            self.pathType = pt
-            self.pathPose = pose.add( frameStrips[i] ) # also j should be OK
-            self.pathUpdated = True
-            break
+            sPose = pose.add( frameStrips[i] )
+            if pt != PATH_STRAIGHT or self.refLine == None or \
+                  abs(normalizeAnglePIPI( self.refLine.angle - sPose.heading )) < REF_LINE_CROSSING_ANGLE:
+              self.pathType = pt
+              self.pathPose = sPose # also j should be OK
+              self.pathUpdated = True
+              break
+            else:
+              print "SKIPPED2"
 
     if (len(frameStrips) >= 1 and not self.pathUpdated) and self.lastStripPose != None:
       for fs in frameStrips:
@@ -183,10 +188,14 @@ class StripsLocalisation:
           (dx,dy,da) = sPose.sub( lsp )
           pt = self.diff2pathType( dx, dy, da )
           if pt:
-            self.pathType = pt
-            self.pathPose = sPose
-            self.pathUpdated = True
-            break
+            if pt != PATH_STRAIGHT or self.refLine == None or \
+                  abs(normalizeAnglePIPI( self.refLine.angle - sPose.heading )) < REF_LINE_CROSSING_ANGLE:
+              self.pathType = pt
+              self.pathPose = sPose
+              self.pathUpdated = True
+              break
+            else:
+              print "SKIPPED1"
 
     if not self.pathUpdated:
       if verbose:

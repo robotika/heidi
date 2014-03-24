@@ -23,8 +23,8 @@ def processFrame( frame, debug=False ):
   result = []
   global g_mser
   global THRESHOLD_FRACTION
-#  if g_mser == None:
-#    g_mser = cv2.MSER( _delta = 10, _min_area=100, _max_area=300*50*2 )
+  if g_mser == None:
+    g_mser = cv2.MSER( _delta = 10, _min_area=100, _max_area=300*50*2 )
   gray = cv2.cvtColor( frame, cv2.COLOR_BGR2GRAY )
   if g_mser:
     contours = g_mser.detect(gray, None)
