@@ -78,7 +78,7 @@ class AirRaceDrone( ARDrone2 ):
       self.lastImageResult = self.loggedVideoResult()
 
 
-def competeAirRace( drone, desiredSpeed = 0.4, desiredHeight = 1.5, desiredSpeedStep = 0.0 ):
+def competeAirRace( drone, desiredSpeed = 0.7, desiredHeight = 1.5, desiredSpeedStep = 0.0 ):
   loops = []
   drone.speed = 0.1
   maxVideoDelay = 0.0
@@ -198,7 +198,7 @@ def competeAirRace( drone, desiredSpeed = 0.4, desiredHeight = 1.5, desiredSpeed
       sy = max( -0.2, min( 0.2, -errY-drone.vy ))/2.0
       
       # there is no drone.va (i.e. derivative of heading) available at the moment ... 
-      sa = max( -0.1, min( 0.1, -errA/2.0 ))*1.35
+      sa = max( -0.1, min( 0.1, -errA/2.0 ))*1.35*(desiredSpeed/0.4) # originally set for 0.4=OK
 
 #      print "%0.2f\t%d\t%0.2f\t%0.2f\t%0.2f" % (errY, int(math.degrees(errA)), drone.vy, sy, sa)
       prevTime = drone.time
