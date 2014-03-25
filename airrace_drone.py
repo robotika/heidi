@@ -78,7 +78,7 @@ class AirRaceDrone( ARDrone2 ):
       self.lastImageResult = self.loggedVideoResult()
 
 
-def competeAirRace( drone, desiredSpeed = 0.4, desiredHeight = 1.5, desiredSpeedStep = 0.05 ):
+def competeAirRace( drone, desiredSpeed = 0.4, desiredHeight = 1.5, desiredSpeedStep = 0.0 ):
   loops = []
   drone.speed = 0.1
   maxVideoDelay = 0.0
@@ -129,7 +129,9 @@ def competeAirRace( drone, desiredSpeed = 0.4, desiredHeight = 1.5, desiredSpeed
             break
         poseHistory = poseHistory[:toDel]
 
-        positionReliability = loc.updateFrame( Pose( *oldPose ), [stripPose( r, highResolution=drone.videoHighResolution ) for r in rects] )
+        oldTilt = oldAngles[1]
+        tiltCompensation = Pose(0,desiredHeight*oldTilt,0) # TODO real height?
+        positionReliability = loc.updateFrame( Pose( *oldPose ).add(tiltCompensation), [stripPose( r, highResolution=drone.videoHighResolution ) for r in rects] )
         viewlog.dumpSamples( loc.samples )
         viewlog.dumpBeacon( tuple(loc.samples[loc.ssi])[:2], color=(0,255,0) )
         if loc.pathType != pathType:
@@ -141,7 +143,7 @@ def competeAirRace( drone, desiredSpeed = 0.4, desiredHeight = 1.5, desiredSpeed
           if drone.magneto[:3] == magnetoOnStart:
             print "!!!!!!!! COMPASS FAILURE !!!!!!!!"
           pathType = loc.pathType
-        print "FRAME", frameNumber/15, pathType, "%0.3f" % positionReliability, loc.pathUpdated
+        print "FRAME", frameNumber/15, pathType, "%.1f" % math.degrees(oldTilt), loc.pathUpdated
 #        a = oldPose[2]+math.radians(-90)
 #        # 640, 360
 #        dx = (640/4)*math.cos(a)+(360/4)*math.sin(a)-160
@@ -155,7 +157,7 @@ def competeAirRace( drone, desiredSpeed = 0.4, desiredHeight = 1.5, desiredSpeed
           print "BATTERY LOW!", drone.battery
 
         for r in rects:
-          sPose = Pose( *oldPose ).add( stripPose( r, highResolution=drone.videoHighResolution ) )
+          sPose = Pose( *oldPose ).add(tiltCompensation).add( stripPose( r, highResolution=drone.videoHighResolution ) )
           viewlog.dumpBeacon( sPose.coord(), index=3 )
           viewlog.dumpObstacles( [[(sPose.x-0.15*math.cos(sPose.heading), sPose.y-0.15*math.sin(sPose.heading)), 
                                        (sPose.x+0.15*math.cos(sPose.heading), sPose.y+0.15*math.sin(sPose.heading))]] )

@@ -198,16 +198,18 @@ class StripsLocalisation:
               print "SKIPPED1"
 
     if not self.pathUpdated:
-      if verbose:
-        print "not updated"
       if len(frameStrips) == 1 and self.lastStripPose != None:
         fs = frameStrips[0]
+        sPose = pose.add( fs )
         for lsp in self.lastStripPose:
-          sPose = pose.add( fs )
           if self.isSameStrip( sPose, lsp ):
             # the self.pathType is the same only the pose is updated
             self.pathPose = sPose
             self.pathUpdated = True
+        if not self.pathUpdated:
+          for lsp in self.lastStripPose:
+            print sPose.sub(lsp)
+
 
     if len(frameStrips) > 0:
       self.lastStripPose = []
