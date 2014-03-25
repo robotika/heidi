@@ -182,6 +182,9 @@ def competeAirRace( drone, desiredSpeed = 0.4, desiredHeight = 1.5, desiredSpeed
         errY = refLine.signedDistance( drone.coord )
         errA = normalizeAnglePIPI( drone.heading - refLine.angle )
 
+      # get the height first
+      if drone.coord[2] < desiredHeight - 0.1 and drone.time-startTime < 5.0:
+        sx = 0.0
       if refCircle == None and refLine == None and virtualRefCircle == None:
         sx = 0.0 # wait for Z-up
         if drone.coord[2] > desiredHeight - 0.1:
