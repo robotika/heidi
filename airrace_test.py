@@ -57,6 +57,9 @@ class AirRaceTest( unittest.TestCase ):
     self.assertEqual( removeDuplicities( [((400, 162), (128, 20), -72), ((400, 161), (131, 24), -72)] ), [((400, 162), (128, 20), -72)] )
     self.assertEqual( removeDuplicities( [((209, 292), (133, 30), -87), ((201, 136), (95, 20), 77), ((198, 123), (143, 27), 78)] ),
       [((209, 292), (133, 30), -87), ((198, 123), (143, 27), 78)] )
+    # MSER in [((599, 241), (89, 20), -18), ((353, 183), (78, 18), 90), ((352, 161), (128,23), 88)], frame 61?
+    self.assertEqual( removeDuplicities([((599, 241), (89, 20), -18), ((353, 183), (78, 18), 90), ((352, 161), (128,23), 88)]), 
+        [((599, 241), (89, 20), -18), ((352, 161), (128,23), 88)] )
 
   def testRemoveDuplicitiesMistakes( self ):
     # video_rec_140317_130554.bin : frame 14 - status quo

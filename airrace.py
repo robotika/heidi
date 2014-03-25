@@ -115,7 +115,7 @@ def classifyPath( poses ):
 
 def removeDuplicities( rectangles, desiredRatio=6.0 ):
   "for MSER remove multiple detections of the same strip"
-  radius = 20
+  radius = 30
   ret = []
   for (x,y),(w,h),a in rectangles:
     for (x2,y2),(w2,h2),a2 in ret:
