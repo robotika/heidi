@@ -12,6 +12,7 @@ import random
 REF_CIRCLE_RADIUS = 1.4 # TODO measure in real arena!
 REF_LINE_CROSSING_ANGLE = math.radians(50) # angle for selection of proper strip
 
+LINE_OFFSET = 0.5 # asymetric line navigation
 
 class StripsLocalisation:
   def __init__( self, numSamples = 10 ):
@@ -23,6 +24,7 @@ class StripsLocalisation:
     self.pathUpdated = False
     self.refCircle = None
     self.refLine = None
+    self.countLR = 0
     self.refIndex = 0
     self.ref = []
     p = Pose()
@@ -223,6 +225,10 @@ class StripsLocalisation:
       sPose = pose.add( frameStrips[0] )
       self.refIndex = self.bestMatch( sPose, self.ref )
 
+    if self.pathType == PATH_TURN_LEFT:
+      self.countLR = max( -5, self.countLR - 1 )
+    if self.pathType == PATH_TURN_RIGHT:
+      self.countLR = min( 5, self.countLR + 1 )
 
     if self.pathPose:
       sPose = self.pathPose
@@ -236,6 +242,12 @@ class StripsLocalisation:
         self.refCircle = None
       if self.pathType == PATH_STRAIGHT:
         if self.refLine == None or abs(normalizeAnglePIPI( self.refLine.angle - sPose.heading )) < REF_LINE_CROSSING_ANGLE:
+          offset = Pose()
+          if self.countLR > 0:
+            offset = Pose( 0, LINE_OFFSET, 0 )
+          if self.countLR < 0:
+            offset = Pose( 0, -LINE_OFFSET, 0 )
+          sPose = sPose.add( offset )
           self.refLine = Line( (sPose.x-0.15*math.cos(sPose.heading), sPose.y-0.15*math.sin(sPose.heading)), 
                                    (sPose.x+0.15*math.cos(sPose.heading), sPose.y+0.15*math.sin(sPose.heading)) )
       else:
