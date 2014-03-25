@@ -43,7 +43,8 @@ def processFrame( frame, debug=False ):
       area = cv2.contourArea(cnt, oriented=True)
     if g_mser != None or (area > 100 and area < 100000):
       rect = cv2.minAreaRect(cnt)
-      result.append( rect )
+      if g_mser == None or len(cnt)/float(rect[1][0]*rect[1][1]) > 0.70:
+        result.append( rect )
   if g_mser != None:
     result = removeDuplicities( result )
   if debug:
@@ -207,7 +208,7 @@ if __name__ == "__main__":
         if "src_cv2_" in sys.argv[2]:
           testPaVEVideo( filename, refLog=open(sys.argv[2]) )
         else:
-          testPaVEVideo( filename, onlyFrameNumber=int(sys.argv[2]) )
+          testPaVEVideo( filename, onlyFrameNumber=int(eval(sys.argv[2])) )
       else:
         testPaVEVideo( filename )
     else:
