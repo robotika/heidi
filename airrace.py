@@ -19,6 +19,19 @@ THRESHOLD_FRACTION = 0.05
 g_filename = None
 g_mser = None
 
+# Jakub's workaround for OpenCV 2.4.2 on linux
+def arrayTo3d( contours ):
+  contours3d = []
+  for cnt in contours:
+    cnt3d = np.zeros( (cnt.shape[0], 1, cnt.shape[1]), dtype=int )
+    for ii in xrange(cnt.shape[0]):
+      cnt3d[ii] = cnt[ii]
+    contours3d.append(cnt3d)
+  return contours3d
+
+
+
+
 def processFrame( frame, debug=False ):
   result = []
   global g_mser
@@ -28,6 +41,8 @@ def processFrame( frame, debug=False ):
   gray = cv2.cvtColor( frame, cv2.COLOR_BGR2GRAY )
   if g_mser:
     contours = g_mser.detect(gray, None)
+    if cv2.__version__ == "2.4.2":
+      contours = arrayTo3d( contours ) # Jakub's workaround for 2.4.2 on linux
   else:
     histogram = cv2.calcHist([gray],[0],None,[256],[0,256])
     s = 0
