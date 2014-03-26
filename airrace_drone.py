@@ -20,6 +20,11 @@ from striploc import StripsLocalisation, REF_CIRCLE_RADIUS
 from striploc import PATH_STRAIGHT, PATH_TURN_LEFT, PATH_TURN_RIGHT
 
 
+MAX_ALLOWED_SPEED = 0.8
+STRIPS_FAILURE_SPEED = 0.5 # ??? speed when localisation is not updated from last image ... maybe two images??
+TRANSITION_SPEED = 0.4
+NUM_FAST_STRIPS = 5 # now the same number for straight and turn segments -> TODO split
+
 def timeName( prefix, ext ):
   dt = datetime.datetime.now()
   filename = prefix + dt.strftime("%y%m%d_%H%M%S.") + ext
@@ -76,12 +81,15 @@ class AirRaceDrone( ARDrone2 ):
       self.lastImageResult = self.loggedVideoResult()
 
 
-def competeAirRace( drone, desiredSpeed = 0.7, desiredHeight = 1.5, desiredSpeedStep = 0.0 ):
+def competeAirRace( drone, desiredHeight = 1.5 ):
   loops = []
   drone.speed = 0.1
   maxVideoDelay = 0.0
   maxControlGap = 0.0
   loc = StripsLocalisation()
+  
+  remainingFastStrips = 0
+  desiredSpeed = TRANSITION_SPEED
 
   try:
     drone.wait(1.0)
@@ -132,13 +140,21 @@ def competeAirRace( drone, desiredSpeed = 0.7, desiredHeight = 1.5, desiredSpeed
               print "Loop %d, time %d" % (len(loops)+1, drone.time-loops[-1])
             print "-----------------------------------------------"
             loops.append( drone.time )
-            desiredSpeed += desiredSpeedStep
-            print "SPEED SET TO", desiredSpeed
           if drone.magneto[:3] == magnetoOnStart:
             print "!!!!!!!! COMPASS FAILURE !!!!!!!!"
           pathType = loc.pathType
           print "----"
-        print pathType, loc.pathUpdated
+          remainingFastStrips = NUM_FAST_STRIPS
+
+        print pathType, loc.pathUpdated, remainingFastStrips
+        if remainingFastStrips > 0:
+          remainingFastStrips -= 1
+          desiredSpeed = MAX_ALLOWED_SPEED
+          if not loc.pathUpdated:
+            desiredSpeed = STRIPS_FAILURE_SPEED
+        else:
+          desiredSpeed = TRANSITION_SPEED
+
         if drone.battery < 10:
           print "BATTERY LOW!", drone.battery
 
