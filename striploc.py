@@ -11,6 +11,10 @@ REF_CIRCLE_RADIUS = 1.4 # TODO measure in real arena!
 REF_LINE_CROSSING_ANGLE = math.radians(50) # angle for selection of proper strip
 
 LINE_OFFSET = 0.5 # asymetric line navigation
+NUM_TRANSITION_STEPS = 5 # to switch from left/right orientation, also max limits
+MAX_CIRCLE_OFFSET = LINE_OFFSET # for smooth transition, can be different
+
+
 
 PATH_STRAIGHT = 'I'
 PATH_TURN_RIGHT = 'R'
@@ -106,18 +110,18 @@ class StripsLocalisation:
         self.lastStripPose.append( sPose )
 
     if self.pathType == PATH_TURN_LEFT:
-      self.countLR = max( -5, self.countLR - 1 )
+      self.countLR = max( -NUM_TRANSITION_STEPS, self.countLR - 1 )
     if self.pathType == PATH_TURN_RIGHT:
-      self.countLR = min( 5, self.countLR + 1 )
+      self.countLR = min( NUM_TRANSITION_STEPS, self.countLR + 1 )
 
     if self.pathPose:
       sPose = self.pathPose
       if self.pathType == PATH_TURN_LEFT:
         circCenter = sPose.add( Pose(0.0, REF_CIRCLE_RADIUS, 0 )).coord()
-        self.refCircle = circCenter, REF_CIRCLE_RADIUS
+        self.refCircle = circCenter, REF_CIRCLE_RADIUS - MAX_CIRCLE_OFFSET*self.countLR/float(NUM_TRANSITION_STEPS)
       elif self.pathType == PATH_TURN_RIGHT:
         circCenter = sPose.add( Pose(0.0, -REF_CIRCLE_RADIUS, 0 )).coord()
-        self.refCircle = circCenter, REF_CIRCLE_RADIUS
+        self.refCircle = circCenter, REF_CIRCLE_RADIUS + MAX_CIRCLE_OFFSET*self.countLR/float(NUM_TRANSITION_STEPS)
       else:
         self.refCircle = None
       if self.pathType == PATH_STRAIGHT:
