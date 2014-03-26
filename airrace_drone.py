@@ -90,6 +90,7 @@ def competeAirRace( drone, desiredHeight = 1.5 ):
   
   remainingFastStrips = 0
   desiredSpeed = TRANSITION_SPEED
+  updateFailedCount = 0
 
   try:
     drone.wait(1.0)
@@ -147,6 +148,13 @@ def competeAirRace( drone, desiredHeight = 1.5 ):
           remainingFastStrips = NUM_FAST_STRIPS
 
         print pathType, loc.pathUpdated, remainingFastStrips
+        if not loc.pathUpdated:
+          updateFailedCount += 1
+          if updateFailedCount > 1:
+            print "UPDATE FAILED", updateFailedCount
+        else:
+          updateFailedCount = 0
+
         if remainingFastStrips > 0:
           remainingFastStrips -= 1
           desiredSpeed = MAX_ALLOWED_SPEED
