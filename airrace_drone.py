@@ -136,8 +136,8 @@ def competeAirRace( drone, desiredHeight = 1.5 ):
         if loc.pathType != pathType:
           print "TRANS", pathType, "->", loc.pathType
           if pathType == PATH_TURN_LEFT and loc.pathType == PATH_STRAIGHT:
-            if len(loops) > 1:
-              print "Loop %d, time %d" % (len(loops)+1, drone.time-loops[-1])
+            if len(loops) > 0:
+              print "Loop %d, time %d" % (len(loops), drone.time-loops[-1])
             print "-----------------------------------------------"
             loops.append( drone.time )
           if drone.magneto[:3] == magnetoOnStart:
@@ -220,7 +220,7 @@ def competeAirRace( drone, desiredHeight = 1.5 ):
   drone.stopVideo()
   print "MaxVideoDelay", maxVideoDelay
   print "MaxControlGap", maxControlGap
-  print "Loops in sec", [int(now-prev) for prev,now in zip(loops[:-1],loops[1:])]
+  print "Loops", len(loops)-1, [int(now-prev) for prev,now in zip(loops[:-1],loops[1:])]
   print "Battery", drone.battery
 
 
