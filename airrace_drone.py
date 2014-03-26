@@ -106,10 +106,8 @@ def competeAirRace( drone, desiredSpeed = 0.7, desiredHeight = 1.5, desiredSpeed
       if drone.lastImageResult:
         lastUpdate = drone.time
         assert len( drone.lastImageResult ) == 2 and len( drone.lastImageResult[0] ) == 2, drone.lastImageResult
-        (frameNumber, timestamp), lastRect = drone.lastImageResult
+        (frameNumber, timestamp), rects = drone.lastImageResult
         viewlog.dumpCamera( "tmp_%04d.jpg" % (frameNumber/15,), 0 )
-
-        rects = lastRect[:] # filtering is now part of video processing
 
         # keep history small
         videoTime = correctTimePeriod( timestamp/1000., ref=drone.time )
@@ -124,19 +122,23 @@ def competeAirRace( drone, desiredSpeed = 0.7, desiredHeight = 1.5, desiredSpeed
             break
         poseHistory = poseHistory[:toDel]
 
-        oldTilt = oldAngles[1]
-        tiltCompensation = Pose(0,desiredHeight*oldTilt,0) # TODO real height?
+        tiltCompensation = Pose(desiredHeight*oldAngles[0], desiredHeight*oldAngles[1], 0) # TODO real height?
+        print "FRAME", frameNumber/15, "[%.1f %.1f]" % (math.degrees(oldAngles[0]), math.degrees(oldAngles[1])),
         loc.updateFrame( Pose( *oldPose ).add(tiltCompensation), [stripPose( r, highResolution=drone.videoHighResolution ) for r in rects] )
         if loc.pathType != pathType:
           print "TRANS", pathType, "->", loc.pathType
           if pathType == PATH_TURN_LEFT and loc.pathType == PATH_STRAIGHT:
+            if len(loops) > 1:
+              print "Loop %d, time %d" % (len(loops)+1, drone.time-loops[-1])
+            print "-----------------------------------------------"
             loops.append( drone.time )
             desiredSpeed += desiredSpeedStep
             print "SPEED SET TO", desiredSpeed
           if drone.magneto[:3] == magnetoOnStart:
             print "!!!!!!!! COMPASS FAILURE !!!!!!!!"
           pathType = loc.pathType
-        print "FRAME", frameNumber/15, pathType, "%.1f" % math.degrees(oldTilt), loc.pathUpdated
+          print "----"
+        print pathType, loc.pathUpdated
         if drone.battery < 10:
           print "BATTERY LOW!", drone.battery
 
