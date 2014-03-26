@@ -12,7 +12,7 @@ REF_LINE_CROSSING_ANGLE = math.radians(50) # angle for selection of proper strip
 
 LINE_OFFSET = 0.5 # asymetric line navigation
 NUM_TRANSITION_STEPS = 5 # to switch from left/right orientation, also max limits
-MAX_CIRCLE_OFFSET = LINE_OFFSET # for smooth transition, can be different
+MAX_CIRCLE_OFFSET = 0.3 # for smooth transition, can be different
 
 
 

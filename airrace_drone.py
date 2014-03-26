@@ -23,7 +23,7 @@ from striploc import PATH_STRAIGHT, PATH_TURN_LEFT, PATH_TURN_RIGHT
 MAX_ALLOWED_SPEED = 0.8
 STRIPS_FAILURE_SPEED = 0.5 # ??? speed when localisation is not updated from last image ... maybe two images??
 TRANSITION_SPEED = 0.4
-NUM_FAST_STRIPS = 5 # now the same number for straight and turn segments -> TODO split
+NUM_FAST_STRIPS = 4 # now the same number for straight and turn segments -> TODO split
 
 def timeName( prefix, ext ):
   dt = datetime.datetime.now()
@@ -186,8 +186,8 @@ def competeAirRace( drone, desiredHeight = 1.5 ):
                                       - math.radians(-90) + drone.heading )
         if pathType == PATH_TURN_RIGHT:
           errY = math.hypot( drone.coord[0]-refCircle[0][0], drone.coord[1]-refCircle[0][1] ) - refCircle[1]
-          errA = normalizeAnglePIPI( math.atan2( refCircle[0][1] - drone.coord[1], refCircle[0][0] - drone.coord[0] ) 
-                                      + math.radians(-90) - drone.heading )
+          errA = normalizeAnglePIPI( - math.atan2( refCircle[0][1] - drone.coord[1], refCircle[0][0] - drone.coord[0] ) 
+                                      - math.radians(90) + drone.heading )
       if refLine:
         errY = refLine.signedDistance( drone.coord )
         errA = normalizeAnglePIPI( drone.heading - refLine.angle )
