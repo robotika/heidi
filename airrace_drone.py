@@ -10,17 +10,15 @@ import multiprocessing
 import cv2
 import math
 from pave import PaVE, isIFrame, frameNumber, timestamp, correctTimePeriod
-from airrace import processFrame, filterRectangles, stripPose, classifyPath
-from airrace import PATH_UNKNOWN, PATH_STRAIGHT, PATH_CROSSING, PATH_TURN_LEFT, PATH_TURN_RIGHT
+from airrace import processFrame, stripPose
 from sourcelogger import SourceLogger
 from ardrone2 import ARDrone2, ManualControlException, manualControl, normalizeAnglePIPI, distance
 import viewlog
 from line import Line
 from pose import Pose
-from striploc import StripsLocalisation, REF_CIRCLE_RADIUS, REF_LINE_CROSSING_ANGLE
+from striploc import StripsLocalisation, REF_CIRCLE_RADIUS
+from striploc import PATH_STRAIGHT, PATH_TURN_LEFT, PATH_TURN_RIGHT
 
-TRANSITION_RADIUS = 2.15 # TODO measure - distance from crossing to circle tangent point
-CROSSING_Y_COORD = 1.4+2.45 # TODO measure
 
 def timeName( prefix, ext ):
   dt = datetime.datetime.now()
@@ -83,9 +81,7 @@ def competeAirRace( drone, desiredSpeed = 0.7, desiredHeight = 1.5, desiredSpeed
   drone.speed = 0.1
   maxVideoDelay = 0.0
   maxControlGap = 0.0
-  loc = StripsLocalisation( numSamples = 100 )
-  viewlog.dumpObstacles( [[(r.x-0.15*math.cos(r.heading), r.y-0.15*math.sin(r.heading)), 
-                           (r.x+0.15*math.cos(r.heading), r.y+0.15*math.sin(r.heading))] for r in loc.ref] )
+  loc = StripsLocalisation()
 
   try:
     drone.wait(1.0)
@@ -113,8 +109,7 @@ def competeAirRace( drone, desiredSpeed = 0.7, desiredHeight = 1.5, desiredSpeed
         (frameNumber, timestamp), lastRect = drone.lastImageResult
         viewlog.dumpCamera( "tmp_%04d.jpg" % (frameNumber/15,), 0 )
 
-        rects = filterRectangles( lastRect, minWidth=75 ) # DEPRECATED - used for logs only (!)
-        # rects = lastRect[:] # refactoring - filtering is now part of video processing
+        rects = lastRect[:] # filtering is now part of video processing
 
         # keep history small
         videoTime = correctTimePeriod( timestamp/1000., ref=drone.time )
@@ -131,9 +126,7 @@ def competeAirRace( drone, desiredSpeed = 0.7, desiredHeight = 1.5, desiredSpeed
 
         oldTilt = oldAngles[1]
         tiltCompensation = Pose(0,desiredHeight*oldTilt,0) # TODO real height?
-        positionReliability = loc.updateFrame( Pose( *oldPose ).add(tiltCompensation), [stripPose( r, highResolution=drone.videoHighResolution ) for r in rects] )
-        viewlog.dumpSamples( loc.samples )
-        viewlog.dumpBeacon( tuple(loc.samples[loc.ssi])[:2], color=(0,255,0) )
+        loc.updateFrame( Pose( *oldPose ).add(tiltCompensation), [stripPose( r, highResolution=drone.videoHighResolution ) for r in rects] )
         if loc.pathType != pathType:
           print "TRANS", pathType, "->", loc.pathType
           if pathType == PATH_TURN_LEFT and loc.pathType == PATH_STRAIGHT:
@@ -144,15 +137,6 @@ def competeAirRace( drone, desiredSpeed = 0.7, desiredHeight = 1.5, desiredSpeed
             print "!!!!!!!! COMPASS FAILURE !!!!!!!!"
           pathType = loc.pathType
         print "FRAME", frameNumber/15, pathType, "%.1f" % math.degrees(oldTilt), loc.pathUpdated
-#        a = oldPose[2]+math.radians(-90)
-#        # 640, 360
-#        dx = (640/4)*math.cos(a)+(360/4)*math.sin(a)-160
-#        dy = -(640/4)*math.sin(a)+(360/4)*math.cos(a)-90
-#        scale = 100 #250 # 150pixels is 300mm -> 500 pixels = 1m
-#        print Pose(*oldPose)
-#        print "tmp_%04d.jpg,%d,%d,%d" % (frameNumber/15, 600+int(dx+scale*oldPose[0]), 200+int(dy-scale*oldPose[1]), int(-90+math.degrees(oldPose[2])))
-#        if frameNumber/15 > 25:
-#          sys.exit(0)
         if drone.battery < 10:
           print "BATTERY LOW!", drone.battery
 

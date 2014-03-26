@@ -108,25 +108,6 @@ def stripPose( rect, highResolution=True ):
   else:
     return Pose( scale*(360/2-y), scale*(640/2-x), math.radians( a ) )
 
-PATH_UNKNOWN = '?'
-PATH_STRAIGHT = 'I'
-PATH_CROSSING = 'X'
-PATH_TURN_RIGHT = 'R'
-PATH_TURN_LEFT = 'L'
-
-def classifyPath( poses ):
-  if len(poses) < 2:
-    return PATH_UNKNOWN
-  # poses are expected to by in range -PI/2, PI/2
-  p1, p2 = poses[:2]
-  if math.fabs(p1.heading-p2.heading) < math.radians(10):
-    return PATH_STRAIGHT
-  if math.fabs(p1.heading-p2.heading) > math.radians(70):
-    return PATH_CROSSING
-  if p1.heading > p2.heading:
-    return PATH_TURN_RIGHT
-  else:
-    return PATH_TURN_LEFT
 
 def removeDuplicities( rectangles, desiredRatio=6.0 ):
   "for MSER remove multiple detections of the same strip"
