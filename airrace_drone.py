@@ -10,7 +10,7 @@ import multiprocessing
 import cv2
 import math
 from pave import PaVE, isIFrame, frameNumber, timestamp, correctTimePeriod
-from airrace import processFrame, stripPose
+from airrace import processFrame, allStripPoses
 from sourcelogger import SourceLogger
 from ardrone2 import ARDrone2, ManualControlException, manualControl, normalizeAnglePIPI, distance
 import viewlog
@@ -133,7 +133,7 @@ def competeAirRace( drone, desiredHeight = 1.5 ):
 
         tiltCompensation = Pose(desiredHeight*oldAngles[0], desiredHeight*oldAngles[1], 0) # TODO real height?
         print "FRAME", frameNumber/15, "[%.1f %.1f]" % (math.degrees(oldAngles[0]), math.degrees(oldAngles[1])),
-        loc.updateFrame( Pose( *oldPose ).add(tiltCompensation), [stripPose( r, highResolution=drone.videoHighResolution ) for r in rects] )
+        loc.updateFrame( Pose( *oldPose ).add(tiltCompensation), allStripPoses( rects, highResolution=drone.videoHighResolution ) )
         if loc.pathType != pathType:
           print "TRANS", pathType, "->", loc.pathType
           if pathType == PATH_TURN_LEFT and loc.pathType == PATH_STRAIGHT:
@@ -166,8 +166,8 @@ def competeAirRace( drone, desiredHeight = 1.5 ):
         if drone.battery < 10:
           print "BATTERY LOW!", drone.battery
 
-        for r in rects:
-          sPose = Pose( *oldPose ).add(tiltCompensation).add( stripPose( r, highResolution=drone.videoHighResolution ) )
+        for sp in allStripPoses( rects, highResolution=drone.videoHighResolution ):
+          sPose = Pose( *oldPose ).add(tiltCompensation).add( sp )
           viewlog.dumpBeacon( sPose.coord(), index=3 )
           viewlog.dumpObstacles( [[(sPose.x-0.15*math.cos(sPose.heading), sPose.y-0.15*math.sin(sPose.heading)), 
                                        (sPose.x+0.15*math.cos(sPose.heading), sPose.y+0.15*math.sin(sPose.heading))]] )

@@ -90,7 +90,7 @@ def filterRectangles( rects, minWidth=150 ):
       ret.append( ((x,y,),(w,h),a) )
   return ret
 
-def stripPose( rect, highResolution=True ):
+def stripPose( rect, highResolution=True, scale=None ):
   "return relative pose of image rectangle"
   (x,y),(w,h),a = rect
   assert w > 3*h, (w,h)  # 30cm long, 5cm wide ... i.e. should be 6 times
@@ -99,18 +99,27 @@ def stripPose( rect, highResolution=True ):
     a -= 180
   if a < -90:
     a += 180
-  if w >= 5*h: # it should be 6x, but width is more precise
-    scale = 0.3/float(w)
-  else:
-    scale = 0.05/float(h)
+  if scale == None:
+    if w >= 5*h: # it should be 6x, but width is more precise
+      scale = 0.3/float(w)
+    else:
+      scale = 0.05/float(h)
   if highResolution:
     return Pose( scale*(720/2-y), scale*(1280/2-x), math.radians( a ) )
   else:
     return Pose( scale*(360/2-y), scale*(640/2-x), math.radians( a ) )
 
-def allStripPoses( rects ):
+def allStripPoses( rects, highResolution=True ):
   # expected low resolution 640x390
-  return [stripPose(x, highResolution=False) for x in rects]
+  if len(rects) == 1:
+    # keep the old behavior
+    return [stripPose( rects[0], highResolution=highResolution )]
+  maxWidth = None
+  for (x,y),(w,h),a in rects:
+    width = max(w,h)
+    if maxWidth == None or width > maxWidth:
+      maxWidth = width
+  return [stripPose(x, highResolution=highResolution, scale=0.3/float(maxWidth)) for x in rects]
 
 def removeDuplicities( rectangles, desiredRatio=6.0 ):
   "for MSER remove multiple detections of the same strip"
