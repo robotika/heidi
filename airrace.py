@@ -108,6 +108,9 @@ def stripPose( rect, highResolution=True ):
   else:
     return Pose( scale*(360/2-y), scale*(640/2-x), math.radians( a ) )
 
+def allStripPoses( rects ):
+  # expected low resolution 640x390
+  return [stripPose(x, highResolution=False) for x in rects]
 
 def removeDuplicities( rectangles, desiredRatio=6.0 ):
   "for MSER remove multiple detections of the same strip"

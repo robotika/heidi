@@ -23,6 +23,12 @@ class AirRaceTest( unittest.TestCase ):
     s = 0.05/53.
     self.assertEqual( repr(stripPose( ((898, 257), (189, 53), -58) )), repr(Pose(s*(720/2-257), s*(-898+1280/2), math.radians(-32))) )
 
+  def testAllStripPoses( self ):
+    # video_rec_140325_200709.bin 435/15
+    asp = allStripPoses( [((318, 201), (134, 22), 82), ((293, 43), (90, 18), 82)] )
+    self.assertEqual( len(asp), 2 )
+    self.assertAlmostEqual( abs(asp[1].sub( asp[0] ).y), 0.01, 2 ) # straight line - should be less than 0.25 
+    self.assertAlmostEqual( abs(asp[1].sub( asp[0] ).x), 0.51, 2 ) # ... too far
 
   def testRemoveDuplicities( self ):
     self.assertEqual( removeDuplicities([]), [] )
