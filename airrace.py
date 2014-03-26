@@ -107,7 +107,8 @@ def stripPose( rect, highResolution=True, scale=None ):
   if highResolution:
     return Pose( scale*(720/2-y), scale*(1280/2-x), math.radians( a ) )
   else:
-    return Pose( scale*(360/2-y), scale*(640/2-x), math.radians( a ) )
+#    return Pose( scale*(360/2-y), scale*(640/2-x), math.radians( a ) )
+    return Pose( scale*(360/2-y), scale*(270-x), math.radians( a ) )
 
 def allStripPoses( rects, highResolution=True ):
   # expected low resolution 640x390
