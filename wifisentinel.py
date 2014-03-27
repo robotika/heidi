@@ -11,14 +11,20 @@ import sys
 DRONE_IP_LIST = ['192.168.1.2', '192.168.1.3', '192.168.1.4']
 
 def myWiFiIP():
-  # TODO linux
   ret = None
-  p = subprocess.Popen( "ipconfig", stdout=subprocess.PIPE )
-  for line in p.stdout.readlines():
-    if "IPv4 Address" in line:
-      ret = line.strip().split()[-1]
+  if sys.platform == 'linux2':
+    p = subprocess.Popen( ["/sbin/ifconfig", "wlan0"], stdout=subprocess.PIPE )
+    for line in p.stdout.readlines():
+      if "inet adr:" in line: # Czech linux (!)
+        ret = line.strip().split()[1][4:] # cut "adr:"
+  else:
+    p = subprocess.Popen( "ipconfig", stdout=subprocess.PIPE )
+    for line in p.stdout.readlines():
+      if "IPv4 Address" in line:
+        ret = line.strip().split()[-1]
   return ret
 
+print sys.argv
 while True:
   ip = myWiFiIP()
   while ip not in DRONE_IP_LIST:
