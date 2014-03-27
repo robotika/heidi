@@ -23,10 +23,10 @@ while True:
   ip = myWiFiIP()
   while ip not in DRONE_IP_LIST:
     print ip
-    time.sleep(10)
+    time.sleep(3)
     ip = myWiFiIP()
   print "CONNECTED TO", ip
-  if subprocess.call( sys.argv, shell=True ) == 0:
+  if subprocess.call( sys.argv[1:], shell=True ) == 0:
     break
   print "RECOVERY"
 
