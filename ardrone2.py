@@ -335,6 +335,7 @@ class ARDrone2:
         else:
           self.videoProcess1 = Process(target=logVideoStream, args=((HOST, VIDEO_PORT), filename, self.videoQueue1, \
             packetProcessor, inputQueue, False))
+        self.videoProcess1.daemon = True
         self.videoProcess1.start()
 
         if record:
@@ -345,6 +346,7 @@ class ARDrone2:
             self.metaLog.flush()
           self.videoProcess2 = Process(target=logVideoStream, args=((HOST, VIDEO_RECORDER_PORT), filename, self.videoQueue2, \
               packetProcessor, inputQueue, True))
+          self.videoProcess2.daemon = True
           self.videoProcess2.start()
 
   def stopVideo( self ):
