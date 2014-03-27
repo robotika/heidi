@@ -32,7 +32,7 @@ while True:
     time.sleep(3)
     ip = myWiFiIP()
   print "CONNECTED TO", ip
-  if subprocess.call( sys.argv[1:], shell=True ) == 0:
+  if subprocess.call( sys.argv[1:] ) == 0:
     break
   print "RECOVERY"
 
