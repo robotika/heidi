@@ -81,12 +81,12 @@ def processFrame( frame, debug=False ):
       cv2.imwrite( g_filename, frame )
   return result
 
-def filterRectangles( rects, minWidth=150 ):
+def filterRectangles( rects, minWidth=150, maxWidth=200 ):
   ret = []
   for (x,y),(w,h),a in rects:
     if w < h:
       w,h,a = h,w,a+90
-    if w > 3*h and w >= minWidth:
+    if w > 3*h and w >= minWidth and w <= maxWidth:
       ret.append( ((x,y,),(w,h),a) )
   return ret
 

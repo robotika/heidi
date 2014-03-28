@@ -6,9 +6,9 @@ class AirRaceTest( unittest.TestCase ):
   def testFilterRectanbles( self ):
     self.assertEqual( filterRectangles([]), [] )
     self.assertEqual( filterRectangles(
-      [((817, 597), (10, 12), -26), ((223, 440), (319, 60), -88)]), 
+      [((817, 597), (10, 12), -26), ((223, 440), (319, 60), -88)], maxWidth=500), 
       [((223, 440), (319, 60), -88)] )
-    self.assertEqual( filterRectangles( [((298, 508), (58, 319), -15)] ), [((298, 508), (319, 58), 75)] )
+    self.assertEqual( filterRectangles( [((298, 508), (58, 319), -15)], maxWidth=500 ), [((298, 508), (319, 58), 75)] )
     self.assertEqual( filterRectangles( [((982, 492), (29, 17), -45), ((951, 507), (60, 84), -69)] ), [] )
 
   def testStripPose( self ):
@@ -52,6 +52,10 @@ class AirRaceTest( unittest.TestCase ):
     #                                      ((216, 37), (81, 28), -79), ((216, 48), (104, 39), -77),] ), [((216, 48), (104, 39), -77)] )
     # well this is better example, with whole strip - WRONG SELECTION!
     self.assertEqual( removeDuplicities( [((155, 196), (160, 26), -63), ((141, 188), (163, 62), -63)] ), [((155, 196), (160, 26), -63)] )
+
+  def testRemoveLargeStrips( self ):
+    # it looks like that big strips should be removed
+    self.assertEqual( filterRectangles([((452, 143), (289, 68), 88)]), [] )
 
 if __name__ == "__main__":
   unittest.main() 
