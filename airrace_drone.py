@@ -24,6 +24,7 @@ MAX_ALLOWED_SPEED = 0.8
 STRIPS_FAILURE_SPEED = 0.5 # ??? speed when localisation is not updated from last image ... maybe two images??
 TRANSITION_SPEED = 0.4
 NUM_FAST_STRIPS = 4 # now the same number for straight and turn segments -> TODO split
+MAX_ALLOWED_VIDEO_DELAY = 3.0 # in seconds, then it will wait (desiredSpeed = 0.0)
 
 def timeName( prefix, ext ):
   dt = datetime.datetime.now()
@@ -162,6 +163,8 @@ def competeAirRace( drone, desiredHeight = 1.5 ):
             desiredSpeed = STRIPS_FAILURE_SPEED
         else:
           desiredSpeed = TRANSITION_SPEED
+        if videoDelay > MAX_ALLOWED_VIDEO_DELAY:
+          desiredSpeed = 0.0
 
         if drone.battery < 10:
           print "BATTERY LOW!", drone.battery
