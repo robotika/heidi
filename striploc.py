@@ -7,7 +7,7 @@ from line import Line
 
 import math
 
-REF_CIRCLE_RADIUS = 1.4 # TODO measure in real arena!
+REF_CIRCLE_RADIUS = 1.25 # TODO measure in real arena!
 REF_LINE_CROSSING_ANGLE = math.radians(50) # angle for selection of proper strip
 
 LINE_OFFSET = 0.5 # asymetric line navigation
