@@ -30,6 +30,7 @@ class StripsLocalisation:
     self.refCircle = None
     self.refLine = None
     self.countLR = 0
+    self.crossing = False
 
 
   def diff2pathType( self, dx, dy, da ):
@@ -56,6 +57,7 @@ class StripsLocalisation:
     if verbose:
       print pose, [str(p) for p in frameStrips]
     self.pathUpdated = False
+    self.crossing = False
     for i in xrange(len(frameStrips)):
       for j in xrange(len(frameStrips)):
         if i != j:
@@ -71,6 +73,7 @@ class StripsLocalisation:
               break
             else:
               print "SKIPPED2"
+              self.crossing = True
 
     if (len(frameStrips) >= 1 and not self.pathUpdated) and self.lastStripPose != None:
       for fs in frameStrips:

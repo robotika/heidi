@@ -24,7 +24,7 @@ MAX_ALLOWED_SPEED = 0.8
 STRIPS_FAILURE_SPEED = 0.5 # ??? speed when localisation is not updated from last image ... maybe two images??
 TRANSITION_SPEED = 0.4
 NUM_FAST_STRIPS = 4 # now the same number for straight and turn segments -> TODO split
-MAX_ALLOWED_VIDEO_DELAY = 3.0 # in seconds, then it will wait (desiredSpeed = 0.0)
+MAX_ALLOWED_VIDEO_DELAY = 2.0 # in seconds, then it will wait (desiredSpeed = 0.0)
 
 def timeName( prefix, ext ):
   dt = datetime.datetime.now()
@@ -82,7 +82,7 @@ class AirRaceDrone( ARDrone2 ):
       self.lastImageResult = self.loggedVideoResult()
 
 
-def competeAirRace( drone, desiredHeight = 1.5 ):
+def competeAirRace( drone, desiredHeight = 1.7 ):
   loops = []
   drone.speed = 0.1
   maxVideoDelay = 0.0
@@ -148,7 +148,10 @@ def competeAirRace( drone, desiredHeight = 1.5 ):
           print "----"
           remainingFastStrips = NUM_FAST_STRIPS
 
-        print pathType, loc.pathUpdated, remainingFastStrips
+        if loc.crossing:
+          print "X", True, remainingFastStrips
+        else:
+          print pathType, loc.pathUpdated, remainingFastStrips
         if not loc.pathUpdated:
           updateFailedCount += 1
           if updateFailedCount > 1:
@@ -159,7 +162,7 @@ def competeAirRace( drone, desiredHeight = 1.5 ):
         if remainingFastStrips > 0:
           remainingFastStrips -= 1
           desiredSpeed = MAX_ALLOWED_SPEED
-          if not loc.pathUpdated:
+          if not loc.pathUpdated and not loc.crossing:
             desiredSpeed = STRIPS_FAILURE_SPEED
         else:
           desiredSpeed = TRANSITION_SPEED
