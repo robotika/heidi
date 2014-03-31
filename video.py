@@ -25,6 +25,7 @@ def logVideoStream( hostPortPair, filename, queueCmd, packetProcessor=None, queu
   f = open( filename, "wb" )
   cmd = None
   prevResult = None
+  timeoutCount = 0
   while cmd == None:
     try:
       data = s.recv(10240)
@@ -36,7 +37,13 @@ def logVideoStream( hostPortPair, filename, queueCmd, packetProcessor=None, queu
           queueResults.put( tmp )
         prevResult = tmp
     except socket.timeout:
-      print "Video filename TIMEOUT"
+      timeoutCount += 1
+      print "Video %s TIMEOUT(%d)" % (filename, timeoutCount)
+      if timeoutCount > 1:
+        # TODO revise try/except, s.connect failure
+        s.close()
+        s.connect( hostPortPair )
+        s.settimeout( VIDEO_SOCKET_TIMEOUT )
     cmd = nextCmd( queueCmd )
   print "VIDEO EXITING"
   if flushWholeVideo:
