@@ -172,6 +172,9 @@ def competeAirRace( drone, desiredHeight = 1.7 ):
         if drone.battery < 10:
           print "BATTERY LOW!", drone.battery
 
+        # height debugging
+        #print "HEIGHT\t%d\t%d\t%.2f\t%d\t%d\t%d\t%d\t%d\t%d" % tuple([max([0]+[w for ((x,y),(w,h),a) in rects])] + list(drone.altitudeData[:4]) + list(drone.pressure) )
+
         for sp in allStripPoses( rects, highResolution=drone.videoHighResolution ):
           sPose = Pose( *oldPose ).add(tiltCompensation).add( sp )
           viewlog.dumpBeacon( sPose.coord(), index=3 )

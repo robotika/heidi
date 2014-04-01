@@ -18,7 +18,7 @@ if sys.platform == 'win32':
 import viewlog
 from line import Line
 
-from navdata import parseTimeTag, parseDemoTag, parseVisionDetectTag, parseRawMeasuresTag, parseAltitudeTag, parseMagnetoTag
+from navdata import parseTimeTag, parseDemoTag, parseVisionDetectTag, parseRawMeasuresTag, parseAltitudeTag, parseMagnetoTag, parsePressureRawTag
 
 from multiprocessing import Process, Queue
 from video import logVideoStream
@@ -37,12 +37,14 @@ CONTROL_PORT = 5559
 
 SOCKET_TIMEOUT = 0.1
 
+# TODO refactoring - why is it also in navdata
 NAVDATA_DEMO_TAG = 0
 NAVDATA_TIME_TAG = 1
 NAVDATA_RAW_MEASURES_TAG = 2
 NAVDATA_ALTITUDE_TAG = 10
 NAVDATA_VISION_DETECT_TAG = 16
 NAVDATA_IPHONE_ANGLES_TAG = 18
+NAVDATA_PRESSURE_RAW_TAG = 21
 NAVDATA_MAGNETO_TAG = 22
 NAVDATA_CKS_TAG = 0xFFFF
 
@@ -213,6 +215,7 @@ class ARDrone2:
     self.userEmergencyLanding = None
     self.battery = None
     self.acc = None # info about raw accelerometer readings
+    self.pressure = None # raw data
     self.collision = False
 
     self.coord = (0,0,0)
@@ -454,6 +457,10 @@ class ARDrone2:
           self.magneto = parseMagnetoTag( data, offset )
           self.compass = math.radians(self.magneto[12])
           viewlog.dumpCompass( self.compass )
+
+        if tag == NAVDATA_PRESSURE_RAW_TAG:
+          self.pressure = parsePressureRawTag( data, offset )
+
         offset += size
 
 

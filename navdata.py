@@ -71,6 +71,7 @@ NAVDATA_ALTITUDE_TAG = 10
 NAVDATA_TRACKERS_SEND_TAG = 15
 NAVDATA_VISION_DETECT_TAG = 16
 NAVDATA_IPHONE_ANGLES_TAG = 18
+NAVDATA_PRESSURE_RAW_TAG = 21
 NAVDATA_MAGNETO_TAG = 22
 NAVDATA_CKS_TAG = 0xFFFF
 
@@ -112,7 +113,30 @@ def parseVisionDetectTag( data, offset ):
   return (countTypes, x, y, height, width, dist, oriAngle, cameraSource)
 
 def parseRawMeasuresTag( data, offset ):
-  "tag == NAVDATA_RAW_MEASURES_TAG"
+  """tag == NAVDATA_RAW_MEASURES_TAG
+typedef struct _navdata_raw_measures_t {
+  uint16_t  tag;
+  uint16_t  size;
+
+  // +12 bytes
+  uint16_t  raw_accs[NB_ACCS];    // filtered accelerometers
+  int16_t   raw_gyros[NB_GYROS];  // filtered gyrometers
+  int16_t   raw_gyros_110[2];     // gyrometers  x/y 110 deg/s
+  uint32_t  vbat_raw;             // battery voltage raw (mV)
+  uint16_t  us_debut_echo;
+  uint16_t  us_fin_echo;
+  uint16_t  us_association_echo;
+  uint16_t  us_distance_echo;
+  uint16_t  us_courbe_temps;
+  uint16_t  us_courbe_valeur;
+  uint16_t  us_courbe_ref;
+  uint16_t  flag_echo_ini;
+  // TODO:   uint16_t  frame_number; // from ARDrone_Magneto
+  uint16_t  nb_echo;
+  uint32_t  sum_echo;
+  int32_t   alt_temp_raw;
+  int16_t   gradient;
+}_ATTRIBUTE_PACKED_ navdata_raw_measures_t;"""
   # 52 bytes = 2*18+3*4=36+12=48 (+4header)
   raw = struct.unpack_from("=HHHhhhhhIhhhhhhhhhIih", data, offset+4)
   return raw[:3]
@@ -166,6 +190,20 @@ typedef struct _navdata_magneto_t {
 """
   return struct.unpack_from("=hhhffffffffffffcIfff", data, offset+4)
 
+def parsePressureRawTag( data, offset ):
+  """ tag == NAVDATA_PRESSURE_RAW_TAG
+// split next struc into magneto_navdata_t and pressure_navdata_t
+typedef struct _navdata_pressure_raw_t {
+  uint16_t   tag;
+  uint16_t   size;
+
+  int32_t   up;
+  int16_t   ut;
+  int32_t   Temperature_meas;
+  int32_t   Pression_meas;
+}_ATTRIBUTE_PACKED_ navdata_pressure_raw_t; 
+"""
+  return struct.unpack_from("=ihii", data, offset+4)
 
 def parseNavData( packet ):
   offset = 0
