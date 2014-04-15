@@ -107,7 +107,7 @@ def competeRobotemRovne( drone, desiredHeight = 1.5 ):
       if drone.altitudeData != None:
         altVision = drone.altitudeData[0]/1000.0
         altSonar = drone.altitudeData[3]/1000.0
-        altitude = (altSonar-altVision)/2.0
+        altitude = (altSonar+altVision)/2.0
         # TODO selection based on history? panic when min/max too far??
         if abs(altSonar-altVision) > 0.5:
           print altSonar, altVision
