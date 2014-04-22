@@ -10,6 +10,8 @@ import datetime
 import multiprocessing
 import cv2
 import math
+import numpy as np
+
 from pave import PaVE, isIFrame, frameNumber, timestamp, correctTimePeriod
 from sourcelogger import SourceLogger
 from ardrone2 import ARDrone2, ManualControlException, manualControl, normalizeAnglePIPI, distance
@@ -17,12 +19,39 @@ import viewlog
 from line import Line
 from pose import Pose
 
+from airrace import main as imgmain # image debugging TODO move to launcher
+from airrace import arrayTo3d # JK 2.4.2 fix
 
 MAX_ALLOWED_SPEED = 0.8
 MAX_ALLOWED_VIDEO_DELAY = 2.0 # in seconds, then it will wait (desiredSpeed = 0.0)
 
+g_mser = None
+
 def processFrame( frame, debug=False ):
-  pass # dummy
+  global g_mser
+  midY = frame.shape[0]/2
+  stripWidth = 200
+  if g_mser == None:
+    g_mser = cv2.MSER( _delta = 10, _min_area=100, _max_area=stripWidth*1000 )
+  imgStrip = frame[ midY:midY+stripWidth, 0:frame.shape[1] ]
+  b,g,r = cv2.split( imgStrip )
+  gray = b
+  contours = g_mser.detect(gray, None)
+  if cv2.__version__ == "2.4.2":
+    contours = arrayTo3d( contours ) # Jakub's workaround for 2.4.2 on linux
+  result = []
+  hulls = [cv2.convexHull(p.reshape(-1, 1, 2)) for p in contours]
+  for hull in hulls:
+    for h in hull:
+      h[0][1] += midY
+  if debug:
+    cv2.polylines(frame, hulls, 2, (0, 0, 255), 2)
+    for rect in result:
+      box = cv2.cv.BoxPoints(rect)
+      box = np.int0(box)
+      cv2.drawContours( frame,[box],0,(255,0,0),2)
+    cv2.imshow('image', frame)
+  return result
 
 def timeName( prefix, ext ):
   dt = datetime.datetime.now()
@@ -184,7 +213,10 @@ def competeRobotemRovne( drone, desiredHeight = 1.5 ):
   print "Battery", drone.battery
 
 
-if __name__ == "__main__": 
+if __name__ == "__main__":
+  if len(sys.argv) > 2 and sys.argv[1] == "img":
+    imgmain( sys.argv[1:], processFrame )
+    sys.exit( 0 )
   import launcher
   launcher.launch( sys.argv, RobotemRovneDrone, competeRobotemRovne )
 

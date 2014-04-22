@@ -204,23 +204,29 @@ def testPaVEVideo( filename, onlyFrameNumber=None, refLog=None ):
 def isParrotVideo( filename ):
   return open( filename ).read(4) == "PaVE"
 
-if __name__ == "__main__":
-  if len(sys.argv) < 2:
+def main( argv, imgFce=None ):
+  if imgFce != None:
+    global processFrame
+    processFrame = imgFce
+  if len(argv) < 2:
     print __doc__
     sys.exit(2)
-  filename = sys.argv[1]
+  filename = argv[1]
   if filename.endswith(".jpg"):
     testFrame( filename )
   else:
     if isParrotVideo( filename ):
-      if len(sys.argv) > 2:
-        if "src_cv2_" in sys.argv[2]:
-          testPaVEVideo( filename, refLog=open(sys.argv[2]) )
+      if len(argv) > 2:
+        if "src_cv2_" in argv[2]:
+          testPaVEVideo( filename, refLog=open(argv[2]) )
         else:
-          testPaVEVideo( filename, onlyFrameNumber=int(eval(sys.argv[2])) )
+          testPaVEVideo( filename, onlyFrameNumber=int(eval(argv[2])) )
       else:
         testPaVEVideo( filename )
     else:
       testVideo( filename )
   cv2.destroyAllWindows()
+
+if __name__ == "__main__":
+  main( sys.argv )
 
