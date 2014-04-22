@@ -20,7 +20,6 @@ from line import Line
 from pose import Pose
 
 from airrace import main as imgmain # image debugging TODO move to launcher
-from airrace import arrayTo3d # JK 2.4.2 fix
 
 MAX_ALLOWED_SPEED = 0.8
 MAX_ALLOWED_VIDEO_DELAY = 2.0 # in seconds, then it will wait (desiredSpeed = 0.0)
@@ -37,8 +36,6 @@ def processFrame( frame, debug=False ):
   b,g,r = cv2.split( imgStrip )
   gray = b
   contours = g_mser.detect(gray, None)
-  if cv2.__version__ == "2.4.2":
-    contours = arrayTo3d( contours ) # Jakub's workaround for 2.4.2 on linux
   result = []
   hulls = []
   for cnt in contours:
