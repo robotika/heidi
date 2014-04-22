@@ -30,7 +30,7 @@ g_mser = None
 def processFrame( frame, debug=False ):
   global g_mser
   midY = frame.shape[0]/2+100
-  stripWidth = 100
+  stripWidth = 120
   if g_mser == None:
     g_mser = cv2.MSER( _delta = 10, _min_area=100, _max_area=stripWidth*1000 )
   imgStrip = frame[ midY:midY+stripWidth, 0:frame.shape[1] ]
@@ -40,17 +40,23 @@ def processFrame( frame, debug=False ):
   if cv2.__version__ == "2.4.2":
     contours = arrayTo3d( contours ) # Jakub's workaround for 2.4.2 on linux
   result = []
+  hulls = []
   for cnt in contours:
     (x1,y1),(x2,y2) = np.amin( cnt, axis=0 ), np.amax( cnt, axis=0 )
     if y1 == 0 and y2 == stripWidth-1: # i.e. whole strip
       if x1 > 0 and x2 < frame.shape[1]-1:
         result.append( ((x1,y1+midY),(x2,y2+midY)) )
+        hulls.append( cv2.convexHull(cnt.reshape(-1, 1, 2)) )
   if debug:
     for rect in result:
       (x1,y1),(x2,y2) = rect
       box = (x1,y1),(x2,y1),(x2,y2),(x1,y2)
       box = np.int0(box)
       cv2.drawContours( frame,[box],0,(255,0,0),2)
+    for hull in hulls:
+      for h in hull:
+        h[0][1] += midY    
+    cv2.polylines(frame, hulls, 2, (0, 255, 0), 2)
     cv2.imshow('image', frame)
   return result
 
