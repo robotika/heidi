@@ -26,6 +26,15 @@ MAX_ALLOWED_VIDEO_DELAY = 2.0 # in seconds, then it will wait (desiredSpeed = 0.
 
 g_mser = None
 
+def approx4pts( poly ):
+  ret = cv2.approxPolyDP( poly, epsilon = 30, closed=True )
+  if len(ret) == 4:
+    return ret
+  if len(ret) < 4:
+    return cv2.approxPolyDP( poly, epsilon = 20, closed=True )
+  return cv2.approxPolyDP( poly, epsilon = 50, closed=True )
+
+
 def processFrame( frame, debug=False ):
   global g_mser
   midY = frame.shape[0]/2+100
@@ -42,18 +51,15 @@ def processFrame( frame, debug=False ):
     (x1,y1),(x2,y2) = np.amin( cnt, axis=0 ), np.amax( cnt, axis=0 )
     if y1 == 0 and y2 == stripWidth-1: # i.e. whole strip
       if x1 > 0 and x2 < frame.shape[1]-1:
-        result.append( ((x1,y1+midY),(x2,y2+midY)) )
-        hulls.append( cv2.convexHull(cnt.reshape(-1, 1, 2)) )
+        hull = cv2.convexHull(cnt.reshape(-1, 1, 2))
+        for h in hull:
+          h[0][1] += midY
+        hulls.append( hull )
+        result.append( approx4pts( hull ) )
   if debug:
-    for rect in result:
-      (x1,y1),(x2,y2) = rect
-      box = (x1,y1),(x2,y1),(x2,y2),(x1,y2)
-      box = np.int0(box)
-      cv2.drawContours( frame,[box],0,(255,0,0),2)
-    for hull in hulls:
-      for h in hull:
-        h[0][1] += midY    
     cv2.polylines(frame, hulls, 2, (0, 255, 0), 2)
+    for trapezoid in result:
+      cv2.drawContours( frame,[np.int0(trapezoid)],0,(255,0,0),2)
     cv2.imshow('image', frame)
   return result
 
