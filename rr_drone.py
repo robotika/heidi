@@ -34,6 +34,9 @@ def approx4pts( poly ):
     return cv2.approxPolyDP( poly, epsilon = 20, closed=True )
   return cv2.approxPolyDP( poly, epsilon = 50, closed=True )
 
+def trapezoid2line( t ):
+  if len(t) == 4:
+    return [((t[0][0]+t[1][0])/2, (t[0][1]+t[1][1])/2), ((t[2][0]+t[3][0])/2, (t[2][1]+t[3][1])/2)]
 
 def processFrame( frame, debug=False ):
   global g_mser
@@ -55,11 +58,15 @@ def processFrame( frame, debug=False ):
         for h in hull:
           h[0][1] += midY
         hulls.append( hull )
-        result.append( approx4pts( hull ) )
+        result.append( [(a[0][0],a[0][1]) for a in approx4pts( hull )] )
   if debug:
     cv2.polylines(frame, hulls, 2, (0, 255, 0), 2)
     for trapezoid in result:
       cv2.drawContours( frame,[np.int0(trapezoid)],0,(255,0,0),2)
+    if len(result) == 1:
+      navLine = trapezoid2line( result[0] )
+      if navLine:
+        cv2.line(frame, navLine[0], navLine[1], (0,0,255), 4)
     cv2.imshow('image', frame)
   return result
 

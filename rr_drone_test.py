@@ -10,6 +10,10 @@ class RRDoneTest( unittest.TestCase ):
     self.assertEqual( len(trapezoid), 4 )
     self.assertTrue( trapezoid, [(983, 579), (261,579), (587, 460), (749, 460)] )
 
+  def testTrapezoid2line( self ):
+    self.assertEqual( trapezoid2line( [(983, 579), (261,579), (587, 460), (749, 460)] ),
+        [((983+261)/2,579), ((587+749)/2, 460)] )
+
 if __name__ == "__main__":
   unittest.main() 
 
