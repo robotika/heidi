@@ -212,6 +212,9 @@ def competeRobotemRovne( drone, desiredHeight = 1.5 ):
             print start
             print end
             refLine = Line(start, end)
+            viewlog.dumpBeacon( start, index=3 )
+            viewlog.dumpBeacon( end, index=3 )
+            viewlog.dumpObstacles( [[start,end]] )
         else:
           print len(rects)
 
