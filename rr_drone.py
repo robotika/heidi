@@ -197,7 +197,22 @@ def competeRobotemRovne( drone, desiredHeight = 1.5 ):
 
         tiltCompensation = Pose(desiredHeight*oldAngles[0], desiredHeight*oldAngles[1], 0) # TODO real height?
         print "FRAME", frameNumber/15, "[%.1f %.1f]" % (math.degrees(oldAngles[0]), math.degrees(oldAngles[1])),
-#        loc.updateFrame( Pose( *oldPose ).add(tiltCompensation), allStripPoses( rects, highResolution=drone.videoHighResolution ) )
+        if len(rects) == 1:
+          navLine = trapezoid2line( rects[0] )
+          print navLine
+          if navLine:
+            # TODO itegrate history
+            print drone.coord, drone.heading
+            start = project2plane( imgCoord=navLine[0], coord=drone.coord, height=altitude, 
+                heading=drone.heading, angleFB=drone.angleFB, angleLR=drone.angleLR )
+            end = project2plane( imgCoord=navLine[1], coord=drone.coord, height=altitude, 
+                heading=drone.heading, angleFB=drone.angleFB, angleLR=drone.angleLR )
+            print start
+            print end
+            refLine = Line(start, end)
+        else:
+          print len(rects)
+
 
         if drone.battery < 10:
           print "BATTERY LOW!", drone.battery
