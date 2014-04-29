@@ -107,12 +107,12 @@ def getOrNone():
 
 
 def project2plane( imgCoord, coord, height, heading, angleFB, angleLR ):
-  FOW = math.radians(30)/1280. # TODO measure
+  FOW = math.radians(120) # TODO measure
   EPS = 0.0001
   x,y = imgCoord[0]-1280/2, 720/2-imgCoord[1]
   x,y = x*math.cos(angleLR)-y*math.sin(angleLR), y*math.cos(angleLR)+x*math.sin(angleLR)
-  h = -x/FOW + heading
-  tilt = y/FOW + angleFB
+  h = -x/1280*FOW + heading
+  tilt = y/1280*FOW - angleFB
   if tilt > -EPS:
     return None # close to 0.0 AND projection behind drone
 
@@ -204,7 +204,7 @@ def competeRobotemRovne( drone, desiredHeight = 1.5 ):
           print navLine
           if navLine:
             # TODO itegrate history
-            print drone.coord, drone.heading
+            print drone.coord, math.degrees(drone.heading)
             start = project2plane( imgCoord=navLine[0], coord=drone.coord, height=altitude, 
                 heading=drone.heading, angleFB=drone.angleFB, angleLR=drone.angleLR )
             end = project2plane( imgCoord=navLine[1], coord=drone.coord, height=altitude, 
