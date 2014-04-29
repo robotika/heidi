@@ -104,6 +104,19 @@ def getOrNone():
   return g_queueResults.get()
 
 
+def project2plane( imgCoord, coord, height, heading, angleFB, angleLR ):
+  FOW = math.radians(30)/1280. # TODO measure
+  EPS = 0.0001
+  x,y = imgCoord[0]-1280/2, 720/2-imgCoord[1]
+  x,y = x*math.cos(angleLR)-y*math.sin(angleLR), y*math.cos(angleLR)+x*math.sin(angleLR)
+  h = -x/FOW + heading
+  tilt = y/FOW + angleFB
+  if tilt > -EPS:
+    return None # close to 0.0 AND projection behind drone
+
+  dist = height/math.tan(-tilt)
+  return (coord[0]+math.cos(h)*dist , coord[1]+math.sin(h)*dist)
+
 class RobotemRovneDrone( ARDrone2 ):
   def __init__( self, replayLog=None, speed = 0.2, skipConfigure=False, metaLog=None, console=None ):
     self.loggedVideoResult = None
