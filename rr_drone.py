@@ -36,7 +36,9 @@ def approx4pts( poly ):
 
 def trapezoid2line( t ):
   if len(t) == 4:
-    return [((t[0][0]+t[1][0])/2, (t[0][1]+t[1][1])/2), ((t[2][0]+t[3][0])/2, (t[2][1]+t[3][1])/2)]
+    if (max( t[0][1], t[1][1] ) < min (t[2][1], t[3][1])) or (min( t[0][1], t[1][1] ) > max (t[2][1], t[3][1])) :
+      return [((t[0][0]+t[1][0])/2, (t[0][1]+t[1][1])/2), ((t[2][0]+t[3][0])/2, (t[2][1]+t[3][1])/2)]
+    return [((t[0][0]+t[3][0])/2, (t[0][1]+t[3][1])/2), ((t[2][0]+t[1][0])/2, (t[2][1]+t[1][1])/2)]
 
 def processFrame( frame, debug=False ):
   global g_mser

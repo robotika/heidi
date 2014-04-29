@@ -13,6 +13,8 @@ class RRDoneTest( unittest.TestCase ):
   def testTrapezoid2line( self ):
     self.assertEqual( trapezoid2line( [(983, 579), (261,579), (587, 460), (749, 460)] ),
         [((983+261)/2,579), ((587+749)/2, 460)] )
+    self.assertEqual( sorted(trapezoid2line( [(1246, 460), (1231, 570), (1152, 572), (1155, 460)] )),
+        sorted([((1231+1152)/2,571), ((1246+1155)/2, 460)]) )
 
   def testProject2plane( self ):
     (x,y) = project2plane( imgCoord=(1280/2, 720/2), coord=(0.0, 0.0), height = 1.5,
