@@ -211,13 +211,17 @@ def competeRobotemRovne( drone, desiredHeight = 1.5 ):
                 heading=drone.heading, angleFB=drone.angleFB, angleLR=drone.angleLR )
             print start
             print end
-            refLine = Line(start, end)
-            viewlog.dumpBeacon( start, index=3 )
-            viewlog.dumpBeacon( end, index=3 )
-            viewlog.dumpObstacles( [[start,end]] )
+            if start and end:
+              refLine = Line(start, end)
+              viewlog.dumpBeacon( start, index=3 )
+              viewlog.dumpBeacon( end, index=3 )
+              viewlog.dumpObstacles( [[start,end]] )
         else:
           print len(rects)
 
+        desiredSpeed = MAX_ALLOWED_SPEED
+        if videoDelay > MAX_ALLOWED_VIDEO_DELAY:
+          desiredSpeed = 0.0
 
         if drone.battery < 10:
           print "BATTERY LOW!", drone.battery
