@@ -12,6 +12,9 @@ from pygame.locals import *
 import pave
 import cv2
 
+# hack for RR only
+from rr_drone import processFrame
+
 printPosition = True
 printEncoders = True
 
@@ -66,6 +69,7 @@ def loadVideoFrame( filename ):
         tmpFile.close()
         cap = cv2.VideoCapture( "tmp.bin" )
         ret, frame = cap.read()
+        processFrame( frame, debug=True )  # hack!!
         cv2.imwrite( "test.jpg", frame ) # dirty solution how to get image from OpenCV to Pygame :(
         return pygame.image.load( "test.jpg" )
       header,payload = proc.extract()
