@@ -68,6 +68,14 @@ def dumpCamera( filename, imgresult ):
     viewLogFile.write( "Image %s\n" % filename )
     viewLogFile.write( "ImageResult %s\n" % imgresult)
 
+def dumpVideo( filename ):
+  if viewLogFile:
+    viewLogFile.write( "Video %s\n" % filename )
+
+def dumpVideoFrame( frameNumber, timestamp ):
+  if viewLogFile:
+    viewLogFile.write( "Frame %d %d\n" % (frameNumber, timestamp) )
+
 def viewLogExtension( robot, id, data ):
   if id == 0x80:
     if robot.localisation:

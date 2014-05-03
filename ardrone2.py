@@ -351,6 +351,10 @@ class ARDrone2:
               packetProcessor, inputQueue, True))
           self.videoProcess2.daemon = True
           self.videoProcess2.start()
+      else:
+        # replaying log
+        if self.metaLog and record:
+          viewlog.dumpVideo( self.metaLog.getLog("video_rec:") )
 
   def stopVideo( self ):
     if self.videoQueue1 != None and self.videoProcess1 != None:

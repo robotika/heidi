@@ -8,6 +8,9 @@ import sys
 
 import os, math, pygame
 from pygame.locals import *
+# ------- video loading ----------
+import pave
+import cv2
 
 printPosition = True
 printEncoders = True
@@ -43,6 +46,31 @@ def getCombinedPose( pose, sensorPose ):
   heading = sensorPose[2] + pose[2]
   return (x, y, heading)
 
+def loadVideoFrame( filename ):
+  assert ":" in filename, filename
+  frameNumber = int(filename.split(':')[-1])
+  filename = ":".join(filename.split(":")[:-1])
+  f = open(filename,"rb")
+  proc = pave.PaVE()
+  while True:
+    packet = f.read(10000)
+    if (packet) == 0:
+      break
+    proc.append( packet )
+    header,payload = proc.extract()
+    while payload:
+      if pave.isIFrame( header ) and pave.frameNumber( header ) == frameNumber:
+        tmpFile = open( "tmp.bin", "wb" )
+        tmpFile.write( payload )
+        tmpFile.flush()
+        tmpFile.close()
+        cap = cv2.VideoCapture( "tmp.bin" )
+        ret, frame = cap.read()
+        cv2.imwrite( "test.jpg", frame ) # dirty solution how to get image from OpenCV to Pygame :(
+        return pygame.image.load( "test.jpg" )
+      header,payload = proc.extract()
+  return None # frame not found
+
 def loadData( filename ):
 #  geometry = ( ( -0.02, 0.04, deg(90) ), ( -0.02, -0.04, deg(-90) ) )
 #  geometry = ( ( -0.09, 0.14, deg(90) ), ( -0.09, -0.14, deg(-90) ) )
@@ -54,6 +82,7 @@ def loadData( filename ):
   poses = []
   scans = []
   image = None
+  video = None
   camdir = None
   compass = None
   readingMap = False
@@ -102,6 +131,11 @@ def loadData( filename ):
       scans.append( ( ( float(arr[2]), float(arr[3]), 0.0 ), -3.0) )      
     elif arr[0] == "Image":
       image = arr[1]
+    elif arr[0] == "Video":
+      video = arr[1]
+    elif arr[0] == "Frame":
+      assert video != None
+      image = video + ":" + arr[1] # frame number
     elif arr[0] == "ImageResult":
       try:
         camdir = float(arr[1])
@@ -167,7 +201,10 @@ def drawMap( foreground, map ):
 def drawImage( foreground, imgFileName, camdir ):
   if imgFileName:
 #  imgFileName = 'D:\\md\\hg\\eduro-logs\\100619-rychnov\\pes1\\cam100619_145404_000.jpg'
-    camera = pygame.image.load( imgFileName ).convert()
+    if "video_rec" in imgFileName:
+      camera = loadVideoFrame( imgFileName )
+    else:
+      camera = pygame.image.load( imgFileName ).convert()
     cameraView = pygame.transform.scale( camera, (320, 180) )
     if camdir is not None:
       color = (0xFF, 0x00, 0x00)

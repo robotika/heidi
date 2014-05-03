@@ -182,7 +182,7 @@ def competeRobotemRovne( drone, desiredHeight = 1.5 ):
         lastUpdate = drone.time
         assert len( drone.lastImageResult ) == 2 and len( drone.lastImageResult[0] ) == 2, drone.lastImageResult
         (frameNumber, timestamp), rects = drone.lastImageResult
-        viewlog.dumpCamera( "tmp_%04d.jpg" % (frameNumber/15,), 0 )
+        viewlog.dumpVideoFrame( frameNumber, timestamp )
 
         # keep history small
         videoTime = correctTimePeriod( timestamp/1000., ref=drone.time )
