@@ -107,9 +107,10 @@ def getOrNone():
 
 
 def project2plane( imgCoord, coord, height, heading, angleFB, angleLR ):
-  FOW = math.radians(120) # TODO measure
+  FOW = math.radians(70)
   EPS = 0.0001
   x,y = imgCoord[0]-1280/2, 720/2-imgCoord[1]
+  angleLR = -angleLR # we want to compensate the turn
   x,y = x*math.cos(angleLR)-y*math.sin(angleLR), y*math.cos(angleLR)+x*math.sin(angleLR)
   h = -x/1280*FOW + heading
   tilt = y/1280*FOW - angleFB
@@ -199,23 +200,33 @@ def competeRobotemRovne( drone, desiredHeight = 1.5 ):
 
         tiltCompensation = Pose(desiredHeight*oldAngles[0], desiredHeight*oldAngles[1], 0) # TODO real height?
         print "FRAME", frameNumber/15, "[%.1f %.1f]" % (math.degrees(oldAngles[0]), math.degrees(oldAngles[1])),
+#        print "angle", math.degrees(drone.angleFB-oldAngles[0]), math.degrees(drone.angleLR-oldAngles[1])
         if len(rects) == 1:
           navLine = trapezoid2line( rects[0] )
-          print navLine
+          #print navLine
           if navLine:
             # TODO itegrate history
-            print drone.coord, math.degrees(drone.heading)
-            start = project2plane( imgCoord=navLine[0], coord=drone.coord, height=altitude, 
-                heading=drone.heading, angleFB=drone.angleFB, angleLR=drone.angleLR )
-            end = project2plane( imgCoord=navLine[1], coord=drone.coord, height=altitude, 
-                heading=drone.heading, angleFB=drone.angleFB, angleLR=drone.angleLR )
+            #print drone.coord, math.degrees(drone.heading)
+            start = project2plane( imgCoord=navLine[0], coord=oldPose[:2], height=altitude, 
+                heading=oldPose[2], angleFB=oldAngles[0], angleLR=oldAngles[1] )
+            end = project2plane( imgCoord=navLine[1], coord=oldPose[:2], height=altitude, 
+                heading=oldPose[2], angleFB=oldAngles[0], angleLR=oldAngles[1] )
             print start
             print end
             if start and end:
               refLine = Line(start, end)
               viewlog.dumpBeacon( start, index=3 )
               viewlog.dumpBeacon( end, index=3 )
-              viewlog.dumpObstacles( [[start,end]] )
+              #viewlog.dumpObstacles( [[start,end]] )
+              obst = []
+              for p in rects[0]:
+                p2d = project2plane( imgCoord=p, coord=drone.coord, height=altitude, 
+                  heading=drone.heading, angleFB=drone.angleFB, angleLR=drone.angleLR )
+                if p2d:
+                  viewlog.dumpBeacon( p2d )
+                  obst.append( p2d )
+              #obst.append( obst[0] ) # close loop
+              #viewlog.dumpObstacles( [obst] )
         else:
           print len(rects)
 
