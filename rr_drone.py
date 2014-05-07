@@ -24,6 +24,8 @@ from airrace import main as imgmain # image debugging TODO move to launcher
 MAX_ALLOWED_SPEED = 0.8
 MAX_ALLOWED_VIDEO_DELAY = 2.0 # in seconds, then it will wait (desiredSpeed = 0.0)
 
+MIN_ROAD_AREA = 20000 # filter out small areas
+
 g_mser = None
 
 def approx4pts( poly ):
@@ -52,17 +54,26 @@ def processFrame( frame, debug=False ):
   contours = g_mser.detect(gray, None)
   result = []
   hulls = []
+  selected = None
   for cnt in contours:
     (x1,y1),(x2,y2) = np.amin( cnt, axis=0 ), np.amax( cnt, axis=0 )
     if y1 == 0 and y2 == stripWidth-1: # i.e. whole strip
       if x1 > 0 and x2 < frame.shape[1]-1:
         hull = cv2.convexHull(cnt.reshape(-1, 1, 2))
+        print "AREA", len(cnt)
         for h in hull:
           h[0][1] += midY
         hulls.append( hull )
-        result.append( [(a[0][0],a[0][1]) for a in approx4pts( hull )] )
+        # select the one with the smallest area
+        if selected == None or selected[0] > len(cnt):
+          if len(cnt) >= MIN_ROAD_AREA:
+            selected = len(cnt), hull
+  if selected:
+    result.append( [(a[0][0],a[0][1]) for a in approx4pts( selected[1] )] )
   if debug:
     cv2.polylines(frame, hulls, 2, (0, 255, 0), 2)
+    if selected != None:
+      cv2.polylines(frame, [selected[1]], 2, (0, 0, 0), 2)
     for trapezoid in result:
       cv2.drawContours( frame,[np.int0(trapezoid)],0,(255,0,0),2)
     if len(result) == 1:
