@@ -24,7 +24,12 @@ class RRDoneTest( unittest.TestCase ):
     self.assertEqual( project2plane( imgCoord=(1280/2, 720/2), coord=(0.0, 0.0), height = 1.5,
         heading=math.radians(45), angleFB=math.radians(0), angleLR=0 ), None )
     (x,y) = project2plane( imgCoord=(200, 720/2), coord=(0.0, 0.0), height = 1.5,
-        heading=0, angleFB=0, angleLR=math.radians(10) )
+        heading=0, angleFB=0, angleLR=math.radians(-10) ) # angleLR is positive for turn right
+
+  def testTrapezoid2lineBug( self ):
+    "the line is oriented from drone to horizon"
+    begin,end = trapezoid2line( [(739, 497), (690, 579), (316, 570), (631, 460)] )
+    self.assertTrue( begin[1] > end[1] ) # in image coordinates
 
 if __name__ == "__main__":
   unittest.main() 

@@ -39,8 +39,12 @@ def approx4pts( poly ):
 def trapezoid2line( t ):
   if len(t) == 4:
     if (max( t[0][1], t[1][1] ) < min (t[2][1], t[3][1])) or (min( t[0][1], t[1][1] ) > max (t[2][1], t[3][1])) :
-      return [((t[0][0]+t[1][0])/2, (t[0][1]+t[1][1])/2), ((t[2][0]+t[3][0])/2, (t[2][1]+t[3][1])/2)]
-    return [((t[0][0]+t[3][0])/2, (t[0][1]+t[3][1])/2), ((t[2][0]+t[1][0])/2, (t[2][1]+t[1][1])/2)]
+      begin,end = [((t[0][0]+t[1][0])/2, (t[0][1]+t[1][1])/2), ((t[2][0]+t[3][0])/2, (t[2][1]+t[3][1])/2)]
+    else:
+      begin,end = [((t[0][0]+t[3][0])/2, (t[0][1]+t[3][1])/2), ((t[2][0]+t[1][0])/2, (t[2][1]+t[1][1])/2)]
+    if begin[1] < end[1]:
+      begin,end = end,begin
+    return [begin,end]
 
 def drawArrow( img, pt1, pt2, color, thickness=1 ):
   # inspiration from http://stackoverflow.com/questions/10161351/opencv-how-to-plot-velocity-vectors-as-arrows-in-using-single-static-image
@@ -137,7 +141,7 @@ def project2plane( imgCoord, coord, height, heading, angleFB, angleLR ):
   angleLR = -angleLR # we want to compensate the turn
   x,y = x*math.cos(angleLR)-y*math.sin(angleLR), y*math.cos(angleLR)+x*math.sin(angleLR)
   h = -x/1280*FOW + heading
-  tilt = y/1280*FOW - angleFB
+  tilt = y/1280*FOW + angleFB
   if tilt > -EPS:
     return None # close to 0.0 AND projection behind drone
 
