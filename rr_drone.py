@@ -42,6 +42,19 @@ def trapezoid2line( t ):
       return [((t[0][0]+t[1][0])/2, (t[0][1]+t[1][1])/2), ((t[2][0]+t[3][0])/2, (t[2][1]+t[3][1])/2)]
     return [((t[0][0]+t[3][0])/2, (t[0][1]+t[3][1])/2), ((t[2][0]+t[1][0])/2, (t[2][1]+t[1][1])/2)]
 
+def drawArrow( img, pt1, pt2, color, thickness=1 ):
+  # inspiration from http://stackoverflow.com/questions/10161351/opencv-how-to-plot-velocity-vectors-as-arrows-in-using-single-static-image
+  cv2.line(img, pt1, pt2, color, thickness)
+  l = math.hypot(pt1[0]-pt2[0], pt1[1]-pt2[1])
+  if l > 0.1:
+    spinSize = l/4.
+    spinAngle = math.radians(15)
+    angle = math.atan2(pt1[1]-pt2[1], pt1[0]-pt2[0])
+    pt = int(pt2[0] + spinSize * math.cos(angle+spinAngle)), int(pt2[1] + spinSize * math.sin(angle+spinAngle))
+    cv2.line(img, pt, pt2, color, thickness)
+    pt = int(pt2[0] + spinSize * math.cos(angle-spinAngle)), int(pt2[1] + spinSize * math.sin(angle-spinAngle))
+    cv2.line(img, pt, pt2, color, thickness)
+
 def processFrame( frame, debug=False ):
   global g_mser
   midY = frame.shape[0]/2+100
@@ -79,7 +92,7 @@ def processFrame( frame, debug=False ):
     if len(result) == 1:
       navLine = trapezoid2line( result[0] )
       if navLine:
-        cv2.line(frame, navLine[0], navLine[1], (0,0,255), 4)
+        drawArrow(frame, navLine[0], navLine[1], (0,0,255), 4)
     cv2.imshow('image', frame)
   return result
 
