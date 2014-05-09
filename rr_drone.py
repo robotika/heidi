@@ -25,7 +25,7 @@ from airrace import saveIndexedImage
 MAX_ALLOWED_SPEED = 0.8
 MAX_ALLOWED_VIDEO_DELAY = 2.0 # in seconds, then it will wait (desiredSpeed = 0.0)
 
-MIN_ROAD_AREA = 20000 # filter out small areas
+MIN_ROAD_AREA = 18000 # filter out small areas
 
 g_mser = None
 
