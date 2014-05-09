@@ -20,6 +20,7 @@ from line import Line
 from pose import Pose
 
 from airrace import main as imgmain # image debugging TODO move to launcher
+from airrace import saveIndexedImage
 
 MAX_ALLOWED_SPEED = 0.8
 MAX_ALLOWED_VIDEO_DELAY = 2.0 # in seconds, then it will wait (desiredSpeed = 0.0)
@@ -98,6 +99,7 @@ def processFrame( frame, debug=False ):
       if navLine:
         drawArrow(frame, navLine[0], navLine[1], (0,0,255), 4)
     cv2.imshow('image', frame)
+    saveIndexedImage( frame )
   return result
 
 def timeName( prefix, ext ):

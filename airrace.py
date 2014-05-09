@@ -30,6 +30,9 @@ def arrayTo3d( contours ):
   return contours3d
 
 
+def saveIndexedImage( img ):
+  if g_filename:
+    cv2.imwrite( g_filename, img )
 
 
 def processFrame( frame, debug=False ):
