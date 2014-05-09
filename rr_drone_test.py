@@ -31,6 +31,15 @@ class RRDoneTest( unittest.TestCase ):
     begin,end = trapezoid2line( [(739, 497), (690, 579), (316, 570), (631, 460)] )
     self.assertTrue( begin[1] > end[1] ) # in image coordinates
 
+  def testRect2BLBRTRTL( self ):
+    BL,BR,TR,TL = rect2BLBRTRTL( [(739, 497), (690, 579), (316, 570), (631, 460)] )
+    self.assertEqual( BL, (316, 570) )
+    sortedRect =  rect2BLBRTRTL( [(775, 565), (438, 577), (329, 466), (643, 460)] )
+
+  def testRoadWidth( self ):
+    self.assertEqual( roadWidth([(1.0, 0.0), (2.6, 0.5), (2.6, 5.0), (1.0, 6.0)]), 1.6 )
+    self.assertAlmostEqual( roadWidth([(1.07, 3.69), (2.63, 2.57), (4.10, 5.08), (2.88, 6.02)]), 1.9, 1 )
+
 if __name__ == "__main__":
   unittest.main() 
 

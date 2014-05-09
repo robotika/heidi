@@ -27,6 +27,11 @@ MAX_ALLOWED_VIDEO_DELAY = 2.0 # in seconds, then it will wait (desiredSpeed = 0.
 
 MIN_ROAD_AREA = 18000 # filter out small areas
 
+ROAD_WIDTH_MIN = 1.0
+ROAD_WIDTH_MAX = 5.0
+ROAD_WIDTH_VARIANCE = 2.0
+
+
 g_mser = None
 
 def approx4pts( poly ):
@@ -46,6 +51,19 @@ def trapezoid2line( t ):
     if begin[1] < end[1]:
       begin,end = end,begin
     return [begin,end]
+
+def rect2BLBRTRTL( rect ):
+  if len(rect) == 4:
+    s = [(x,y) for y,x in sorted( [(y,x) for x,y in rect] )] # sort be Y
+    if s[0][0] < s[1][0]:
+      TL,TR = s[:2]
+    else:
+      TR,TL = s[:2]
+    if s[2][0] < s[3][0]:
+      BL,BR = s[2:]
+    else:
+      BR,BL = s[2:]
+    return BL,BR,TR,TL
 
 def drawArrow( img, pt1, pt2, color, thickness=1 ):
   # inspiration from http://stackoverflow.com/questions/10161351/opencv-how-to-plot-velocity-vectors-as-arrows-in-using-single-static-image
@@ -150,6 +168,16 @@ def project2plane( imgCoord, coord, height, heading, angleFB, angleLR ):
   return (coord[0]+math.cos(h)*dist , coord[1]+math.sin(h)*dist)
 
 
+def roadWidthArr( roadPts ):
+  "points are expected to be 4 already sorted by BLBRTRRL image order"
+  assert len(roadPts) == 4, roadPts
+  bl,br,tr,tl = roadPts
+  lineL = Line(bl,tl)
+  lineR = Line(br,tr)
+  return abs(lineR.signedDistance(bl)),abs(lineL.signedDistance(br)),abs(lineL.signedDistance(tr)),abs(lineR.signedDistance(tl))
+
+def roadWidth( roadPts ):
+  return roadWidthArr( roadPts)[0]
 
 class RobotemRovneDrone( ARDrone2 ):
   def __init__( self, replayLog=None, speed = 0.2, skipConfigure=False, metaLog=None, console=None ):
@@ -246,17 +274,25 @@ def competeRobotemRovne( drone, desiredHeight = 1.5 ):
             print start
             print end
             if start and end:
-              refLine = Line(start, end)
+              preRefLine = Line(start, end)
               viewlog.dumpBeacon( start, index=3 )
               viewlog.dumpBeacon( end, index=3 )
-              viewlog.dumpObstacles( [[start,end]] )
               obst = []
-              for p in rects[0]:
+              for p in rect2BLBRTRTL(rects[0]):
                 p2d = project2plane( imgCoord=p, coord=oldPose[:2], height=altitude, 
                   heading=oldPose[2], angleFB=oldAngles[0], angleLR=oldAngles[1] )
                 if p2d:
                   viewlog.dumpBeacon( p2d )
                   obst.append( p2d )
+              if len( obst ) == 4:
+                widthArr = roadWidthArr( obst )
+                widthMin,widthMax = min(widthArr), max(widthArr)
+                if widthMin >= ROAD_WIDTH_MIN and widthMax <= ROAD_WIDTH_MAX and widthMax-widthMin <= ROAD_WIDTH_VARIANCE:
+                  refLine = preRefLine
+                  viewlog.dumpObstacles( [[start,end]] )
+                else:
+                  print "REJECTED widths:", " ".join(["%.1f" % w for w in widthArr])
+
               #obst.append( obst[0] ) # close loop
               #viewlog.dumpObstacles( [obst] )
         else:
