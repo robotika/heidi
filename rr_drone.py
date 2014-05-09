@@ -146,9 +146,10 @@ def project2plane( imgCoord, coord, height, heading, angleFB, angleLR ):
   tilt = y/1280*FOW + angleFB
   if tilt > -EPS:
     return None # close to 0.0 AND projection behind drone
-
   dist = height/math.tan(-tilt)
   return (coord[0]+math.cos(h)*dist , coord[1]+math.sin(h)*dist)
+
+
 
 class RobotemRovneDrone( ARDrone2 ):
   def __init__( self, replayLog=None, speed = 0.2, skipConfigure=False, metaLog=None, console=None ):
@@ -170,6 +171,7 @@ class RobotemRovneDrone( ARDrone2 ):
     ARDrone2.update( self, cmd )
     if self.loggedVideoResult != None:
       self.lastImageResult = self.loggedVideoResult()
+
 
 
 def competeRobotemRovne( drone, desiredHeight = 1.5 ):
@@ -247,11 +249,11 @@ def competeRobotemRovne( drone, desiredHeight = 1.5 ):
               refLine = Line(start, end)
               viewlog.dumpBeacon( start, index=3 )
               viewlog.dumpBeacon( end, index=3 )
-              #viewlog.dumpObstacles( [[start,end]] )
+              viewlog.dumpObstacles( [[start,end]] )
               obst = []
               for p in rects[0]:
-                p2d = project2plane( imgCoord=p, coord=drone.coord, height=altitude, 
-                  heading=drone.heading, angleFB=drone.angleFB, angleLR=drone.angleLR )
+                p2d = project2plane( imgCoord=p, coord=oldPose[:2], height=altitude, 
+                  heading=oldPose[2], angleFB=oldAngles[0], angleLR=oldAngles[1] )
                 if p2d:
                   viewlog.dumpBeacon( p2d )
                   obst.append( p2d )
