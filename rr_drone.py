@@ -217,7 +217,8 @@ def competeRobotemRovne( drone, desiredHeight = 1.5 ):
     startTime = drone.time
     while drone.time < startTime + 1.0:
       drone.update("AT*PCMD=%i,0,0,0,0,0\r") # drone.hover(1.0)
-      poseHistory.append( (drone.time, (drone.coord[0], drone.coord[1], drone.heading), (drone.angleFB, drone.angleLR)) )
+      # TODO sonar/vision altitude
+      poseHistory.append( (drone.time, (drone.coord[0], drone.coord[1], drone.heading), (drone.angleFB, drone.angleLR), None) )
     magnetoOnStart = drone.magneto[:3]
     print "NAVI-ON"
     startTime = drone.time
@@ -252,7 +253,7 @@ def competeRobotemRovne( drone, desiredHeight = 1.5 ):
           print "!DANGER! - video delay", videoDelay
         maxVideoDelay = max( videoDelay, maxVideoDelay )
         toDel = 0
-        for oldTime, oldPose, oldAngles in poseHistory:
+        for oldTime, oldPose, oldAngles, oldAltitude in poseHistory:
           toDel += 1
           if oldTime >= videoTime:
             break
@@ -265,11 +266,11 @@ def competeRobotemRovne( drone, desiredHeight = 1.5 ):
           navLine = trapezoid2line( rects[0] )
           #print navLine
           if navLine:
-            # TODO itegrate history
-            #print drone.coord, math.degrees(drone.heading)
-            start = project2plane( imgCoord=navLine[0], coord=oldPose[:2], height=altitude, 
+            if oldAltitude == None:
+              oldAltitude = altitude
+            start = project2plane( imgCoord=navLine[0], coord=oldPose[:2], height=oldAltitude, 
                 heading=oldPose[2], angleFB=oldAngles[0], angleLR=oldAngles[1] )
-            end = project2plane( imgCoord=navLine[1], coord=oldPose[:2], height=altitude, 
+            end = project2plane( imgCoord=navLine[1], coord=oldPose[:2], height=oldAltitude, 
                 heading=oldPose[2], angleFB=oldAngles[0], angleLR=oldAngles[1] )
             print start
             print end
@@ -279,7 +280,7 @@ def competeRobotemRovne( drone, desiredHeight = 1.5 ):
               viewlog.dumpBeacon( end, index=3 )
               obst = []
               for p in rect2BLBRTRTL(rects[0]):
-                p2d = project2plane( imgCoord=p, coord=oldPose[:2], height=altitude, 
+                p2d = project2plane( imgCoord=p, coord=oldPose[:2], height=oldAltitude, 
                   heading=oldPose[2], angleFB=oldAngles[0], angleLR=oldAngles[1] )
                 if p2d:
                   viewlog.dumpBeacon( p2d )
@@ -329,7 +330,7 @@ def competeRobotemRovne( drone, desiredHeight = 1.5 ):
       prevTime = drone.time
       drone.moveXYZA( sx, sy, sz, sa )
       maxControlGap = max( drone.time - prevTime, maxControlGap )
-      poseHistory.append( (drone.time, (drone.coord[0], drone.coord[1], drone.heading), (drone.angleFB, drone.angleLR)) )
+      poseHistory.append( (drone.time, (drone.coord[0], drone.coord[1], drone.heading), (drone.angleFB, drone.angleLR), altitude) )
     print "NAVI-OFF", drone.time - startTime
     drone.hover(0.5)
     drone.land()
