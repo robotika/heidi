@@ -80,40 +80,49 @@ def drawArrow( img, pt1, pt2, color, thickness=1 ):
 
 def processFrame( frame, debug=False ):
   global g_mser
-  midY = frame.shape[0]/2+100
-  stripWidth = 120
-  if g_mser == None:
-    g_mser = cv2.MSER( _delta = 10, _min_area=100, _max_area=stripWidth*1000 )
-  imgStrip = frame[ midY:midY+stripWidth, 0:frame.shape[1] ]
-  b,g,r = cv2.split( imgStrip )
-  gray = b
-  contours = g_mser.detect(gray, None)
   result = []
-  hulls = []
-  selected = None
-  for cnt in contours:
-    (x1,y1),(x2,y2) = np.amin( cnt, axis=0 ), np.amax( cnt, axis=0 )
-    if y1 == 0 and y2 == stripWidth-1: # i.e. whole strip
-      if x1 > 0 and x2 < frame.shape[1]-1:
-        hull = cv2.convexHull(cnt.reshape(-1, 1, 2))
-        print "AREA", len(cnt)
-        for h in hull:
-          h[0][1] += midY
-        hulls.append( hull )
-        # select the one with the smallest area
-        if selected == None or selected[0] > len(cnt):
-          if len(cnt) >= MIN_ROAD_AREA:
-            selected = len(cnt), hull
-  if selected:
-    result.append( [(a[0][0],a[0][1]) for a in approx4pts( selected[1] )] )
+  allHulls = []
+  selectedHulls = []
+#  for stripOffset in [ -100, 0, +100, +200 ]:
+  for stripOffset in [ +100 ]:
+    midY = frame.shape[0]/2+stripOffset
+    stripWidth = 120
+    if g_mser == None:
+      g_mser = cv2.MSER( _delta = 10, _min_area=100, _max_area=stripWidth*1000 )
+    imgStrip = frame[ midY:midY+stripWidth, 0:frame.shape[1] ]
+    b,g,r = cv2.split( imgStrip )
+    gray = b
+    contours = g_mser.detect(gray, None)
+    hulls = []
+    selected = None
+    for cnt in contours:
+      (x1,y1),(x2,y2) = np.amin( cnt, axis=0 ), np.amax( cnt, axis=0 )
+      if y1 == 0 and y2 == stripWidth-1: # i.e. whole strip
+        if x1 > 0 and x2 < frame.shape[1]-1:
+          hull = cv2.convexHull(cnt.reshape(-1, 1, 2))
+          print "AREA", len(cnt)
+          for h in hull:
+            h[0][1] += midY
+          hulls.append( hull )
+          # select the one with the smallest area
+          if selected == None or selected[0] > len(cnt):
+            if len(cnt) >= MIN_ROAD_AREA:
+              selected = len(cnt), hull
+    if selected:
+      result.append( [(a[0][0],a[0][1]) for a in approx4pts( selected[1] )] )
+    if debug:
+      allHulls.extend( hulls )
+      if selected != None:
+        selectedHulls.append( selected[1] )
+  
   if debug:
-    cv2.polylines(frame, hulls, 2, (0, 255, 0), 2)
+    cv2.polylines(frame, allHulls, 2, (0, 255, 0), 2)
     if selected != None:
-      cv2.polylines(frame, [selected[1]], 2, (0, 0, 0), 2)
+      cv2.polylines(frame, selectedHulls, 2, (0, 0, 0), 2)
     for trapezoid in result:
       cv2.drawContours( frame,[np.int0(trapezoid)],0,(255,0,0),2)
-    if len(result) == 1:
-      navLine = trapezoid2line( result[0] )
+    for trapezoid in result:
+      navLine = trapezoid2line( trapezoid )
       if navLine:
         drawArrow(frame, navLine[0], navLine[1], (0,0,255), 4)
     cv2.imshow('image', frame)
