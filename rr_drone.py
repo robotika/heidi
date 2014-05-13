@@ -117,7 +117,7 @@ def processFrame( frame, debug=False ):
   
   if debug:
     cv2.polylines(frame, allHulls, 2, (0, 255, 0), 2)
-    if selected != None:
+    if len(selectedHulls) > 0:
       cv2.polylines(frame, selectedHulls, 2, (0, 0, 0), 2)
     for trapezoid in result:
       cv2.drawContours( frame,[np.int0(trapezoid)],0,(255,0,0),2)
