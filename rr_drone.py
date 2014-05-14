@@ -108,8 +108,9 @@ def processFrame( frame, debug=False ):
             rect = rect2BLBRTRTL([(a[0][0],a[0][1]) for a in approx4pts( hull )] )
             if rect != None:
               bl,br,tr,tl = rect
-              if br[1]-bl[1] > tr[1]-tl[1]:
-                # make sure that direction is forward
+              p = tuple([int(x) for x in Line(bl,tl).intersect( Line(br,tr) )])
+              if br[0]-bl[0] > tr[0]-tl[0] and p[1] > 0 and p[1] < frame.shape[0]:
+                # make sure that direction is forward and in the image
                 if selected == None or selected[0] > len(cnt):
                   selected = len(cnt), hull, rect
     if selected:
@@ -126,6 +127,9 @@ def processFrame( frame, debug=False ):
     for trapezoid in result:
       cv2.drawContours( frame,[np.int0(trapezoid)],0,(255,0,0),2)
     for trapezoid in result:
+      bl,br,tr,tl = trapezoid
+      p = tuple([int(x) for x in Line(bl,tl).intersect( Line(br,tr) )])
+      cv2.circle( frame, p, 10, (0,255,128), 3 )
       navLine = trapezoid2line( trapezoid )
       if navLine:
         drawArrow(frame, navLine[0], navLine[1], (0,0,255), 4)

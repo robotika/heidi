@@ -67,3 +67,12 @@ class Line:
       return self.start, distance(pos,self.start), 0
     return self.snap(pos), math.fabs(self.signedDistance(pos)), -1
 
+  def intersect( self, line ):
+    # ax+by+c=0
+    det = float(self._a*line._b - self._b*line._a)
+    detA = -self._c*line._b + self._b*line._c
+    detB = -self._a*line._c + self._c*line._a
+    if abs(det) < 0.00001:
+      return None
+    return (detA/det, detB/det)
+
