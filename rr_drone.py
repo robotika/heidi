@@ -33,6 +33,8 @@ ROAD_WIDTH_VARIANCE = 2.0
 
 ROAD_WIDTH = 3.0 # expected width
 DEFAULT_REF_LINE = None  # TODO fill proper Line((0,0), magicEnd)
+MAX_REF_LINE_ANGLE = math.radians(20)
+MAX_REF_LINE_DIST = 2.0
 
 g_mser = None
 
@@ -327,9 +329,13 @@ def competeRobotemRovne( drone, desiredHeight = 1.5 ):
           if line:
             if refLine != None:
               print "%.1fdeg %.2fm" % (math.degrees(normalizeAnglePIPI(refLine.angle - line.angle)), refLine.signedDistance( line.start ))
+              if abs(normalizeAnglePIPI(refLine.angle - line.angle)) < MAX_REF_LINE_ANGLE and \
+                  abs(refLine.signedDistance( line.start )) < MAX_REF_LINE_DIST:
+                refLine = line
+            else:
+              refLine = line
             viewlog.dumpBeacon( line.start, index=3 )
             viewlog.dumpBeacon( line.end, index=3 )
-            refLine = line
             if drone.replayLog != None:
               cv2.imwrite( debugFilename, debugImg )
         else:
