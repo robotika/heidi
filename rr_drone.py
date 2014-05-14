@@ -32,6 +32,7 @@ ROAD_WIDTH_MAX = 5.0
 ROAD_WIDTH_VARIANCE = 2.0
 
 ROAD_WIDTH = 3.0 # expected width
+DEFAULT_REF_LINE = None  # TODO fill proper Line((0,0), magicEnd)
 
 g_mser = None
 
@@ -259,7 +260,7 @@ def competeRobotemRovne( drone, desiredHeight = 1.5 ):
   maxVideoDelay = 0.0
   maxControlGap = 0.0
   desiredSpeed = MAX_ALLOWED_SPEED
-  refLine = None
+  refLine = DEFAULT_REF_LINE
   
   try:
     drone.wait(1.0)
@@ -324,6 +325,8 @@ def competeRobotemRovne( drone, desiredHeight = 1.5 ):
           line = chooseBestWidth( rects, coord=oldPose[:2], height=oldAltitude, 
               heading=oldPose[2], angleFB=oldAngles[0], angleLR=oldAngles[1], debugImg=debugImg )
           if line:
+            if refLine != None:
+              print "%.1fdeg %.2fm" % (math.degrees(normalizeAnglePIPI(refLine.angle - line.angle)), refLine.signedDistance( line.start ))
             viewlog.dumpBeacon( line.start, index=3 )
             viewlog.dumpBeacon( line.end, index=3 )
             refLine = line
