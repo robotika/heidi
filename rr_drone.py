@@ -100,13 +100,12 @@ def processFrame( frame, debug=False ):
       if y1 == 0 and y2 == stripWidth-1: # i.e. whole strip
         if x1 > 0 and x2 < frame.shape[1]-1:
           hull = cv2.convexHull(cnt.reshape(-1, 1, 2))
-          print "AREA", len(cnt)
           for h in hull:
             h[0][1] += midY
           hulls.append( hull )
           # select the one with the smallest area
-          if selected == None or selected[0] > len(cnt):
-            if len(cnt) >= MIN_ROAD_AREA:
+          if len(cnt) >= MIN_ROAD_AREA:
+            if selected == None or selected[0] > len(cnt):
               selected = len(cnt), hull
     if selected:
       result.append( [(a[0][0],a[0][1]) for a in approx4pts( selected[1] )] )
@@ -271,8 +270,9 @@ def competeRobotemRovne( drone, desiredHeight = 1.5 ):
         tiltCompensation = Pose(desiredHeight*oldAngles[0], desiredHeight*oldAngles[1], 0) # TODO real height?
         print "FRAME", frameNumber/15, "[%.1f %.1f]" % (math.degrees(oldAngles[0]), math.degrees(oldAngles[1])),
 #        print "angle", math.degrees(drone.angleFB-oldAngles[0]), math.degrees(drone.angleLR-oldAngles[1])
-        if len(rects) == 1:
-          navLine = trapezoid2line( rects[0] )
+        if len(rects) > 0:
+          rect = rects[0]
+          navLine = trapezoid2line( rect )
           #print navLine
           if navLine:
             if oldAltitude == None:
@@ -288,7 +288,7 @@ def competeRobotemRovne( drone, desiredHeight = 1.5 ):
               viewlog.dumpBeacon( start, index=3 )
               viewlog.dumpBeacon( end, index=3 )
               obst = []
-              for p in rect2BLBRTRTL(rects[0]):
+              for p in rect2BLBRTRTL(rect):
                 p2d = project2plane( imgCoord=p, coord=oldPose[:2], height=oldAltitude, 
                   heading=oldPose[2], angleFB=oldAngles[0], angleLR=oldAngles[1] )
                 if p2d:
@@ -296,6 +296,7 @@ def competeRobotemRovne( drone, desiredHeight = 1.5 ):
                   obst.append( p2d )
               if len( obst ) == 4:
                 widthArr = roadWidthArr( obst )
+#                print "ROAD widths:", " ".join(["%.1f" % w for w in widthArr])
                 widthMin,widthMax = min(widthArr), max(widthArr)
                 if widthMin >= ROAD_WIDTH_MIN and widthMax <= ROAD_WIDTH_MAX and widthMax-widthMin <= ROAD_WIDTH_VARIANCE:
                   refLine = preRefLine
