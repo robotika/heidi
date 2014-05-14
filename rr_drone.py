@@ -20,7 +20,7 @@ from line import Line
 from pose import Pose
 
 from airrace import main as imgmain # image debugging TODO move to launcher
-from airrace import saveIndexedImage
+from airrace import saveIndexedImage, FRAMES_PER_INDEX
 
 MAX_ALLOWED_SPEED = 0.8
 MAX_ALLOWED_VIDEO_DELAY = 2.0 # in seconds, then it will wait (desiredSpeed = 0.0)
@@ -31,6 +31,7 @@ ROAD_WIDTH_MIN = 1.0
 ROAD_WIDTH_MAX = 5.0
 ROAD_WIDTH_VARIANCE = 2.0
 
+ROAD_WIDTH = 3.0 # expected width
 
 g_mser = None
 
@@ -111,10 +112,11 @@ def processFrame( frame, debug=False ):
               p = tuple([int(x) for x in Line(bl,tl).intersect( Line(br,tr) )])
               if br[0]-bl[0] > tr[0]-tl[0] and p[1] > 0 and p[1] < frame.shape[0]:
                 # make sure that direction is forward and in the image
-                if selected == None or selected[0] > len(cnt):
-                  selected = len(cnt), hull, rect
-    if selected:
-      result.append( selected[2] )
+                result.append( rect )
+#                if selected == None or selected[0] > len(cnt):
+#                  selected = len(cnt), hull, rect
+#    if selected:
+#      result.append( selected[2] )
     if debug:
       allHulls.extend( hulls )
       if selected != None:
@@ -124,15 +126,15 @@ def processFrame( frame, debug=False ):
     cv2.polylines(frame, allHulls, 2, (0, 255, 0), 2)
     if len(selectedHulls) > 0:
       cv2.polylines(frame, selectedHulls, 2, (0, 0, 0), 2)
-    for trapezoid in result:
-      cv2.drawContours( frame,[np.int0(trapezoid)],0,(255,0,0),2)
-    for trapezoid in result:
-      bl,br,tr,tl = trapezoid
-      p = tuple([int(x) for x in Line(bl,tl).intersect( Line(br,tr) )])
-      cv2.circle( frame, p, 10, (0,255,128), 3 )
-      navLine = trapezoid2line( trapezoid )
-      if navLine:
-        drawArrow(frame, navLine[0], navLine[1], (0,0,255), 4)
+#    for trapezoid in result:
+#      cv2.drawContours( frame,[np.int0(trapezoid)],0,(255,0,0),2)
+#    for trapezoid in result:
+#      bl,br,tr,tl = trapezoid
+#      p = tuple([int(x) for x in Line(bl,tl).intersect( Line(br,tr) )])
+#      cv2.circle( frame, p, 10, (0,255,128), 3 )
+#      navLine = trapezoid2line( trapezoid )
+#      if navLine:
+#        drawArrow(frame, navLine[0], navLine[1], (0,0,255), 4)
     cv2.imshow('image', frame)
     saveIndexedImage( frame )
   return result
@@ -195,6 +197,39 @@ def roadWidthArr( roadPts ):
 
 def roadWidth( roadPts ):
   return roadWidthArr( roadPts)[0]
+
+def chooseBestWidth( rects, coord, height, heading, angleFB, angleLR, debugImg=None ):
+  best = None
+  for rect in rects:
+    navLine = trapezoid2line( rect )
+    if navLine:
+      start = project2plane( navLine[0], coord, height, heading, angleFB, angleLR )
+      end = project2plane( navLine[1], coord, height, heading, angleFB, angleLR )
+      if start and end:
+        preRefLine = Line(start, end)
+        obst = []
+        for p in rect2BLBRTRTL(rect):
+          p2d = project2plane( p, coord, height, heading, angleFB, angleLR )
+          if p2d:
+            obst.append( p2d )
+        if len( obst ) == 4:
+          widthArr = roadWidthArr( obst )
+          widthMin,widthMax = min(widthArr), max(widthArr)
+          if widthMin >= ROAD_WIDTH_MIN and widthMax <= ROAD_WIDTH_MAX and widthMax-widthMin <= ROAD_WIDTH_VARIANCE:
+            w = (widthArr[0]+widthArr[1])/2.0
+            if best == None or abs(best[0]-ROAD_WIDTH) > abs(w-ROAD_WIDTH):
+              best = w,preRefLine,rect
+  if best == None:
+    print "  Width: None"
+    return None
+  print "  Width %.2f" % best[0]
+  if debugImg != None:
+    cv2.drawContours( debugImg, [np.int0(best[2])],0,(255,0,0),2 )
+    navLine = trapezoid2line( best[2] )
+    if navLine:
+      drawArrow( debugImg, navLine[0], navLine[1], (0,0,255), 4)
+
+  return best[1]
 
 class RobotemRovneDrone( ARDrone2 ):
   def __init__( self, replayLog=None, speed = 0.2, skipConfigure=False, metaLog=None, console=None ):
@@ -280,41 +315,20 @@ def competeRobotemRovne( drone, desiredHeight = 1.5 ):
         print "FRAME", frameNumber/15, "[%.1f %.1f]" % (math.degrees(oldAngles[0]), math.degrees(oldAngles[1])),
 #        print "angle", math.degrees(drone.angleFB-oldAngles[0]), math.degrees(drone.angleLR-oldAngles[1])
         if len(rects) > 0:
-          rect = rects[0]
-          navLine = trapezoid2line( rect )
-          #print navLine
-          if navLine:
-            if oldAltitude == None:
-              oldAltitude = altitude
-            start = project2plane( imgCoord=navLine[0], coord=oldPose[:2], height=oldAltitude, 
-                heading=oldPose[2], angleFB=oldAngles[0], angleLR=oldAngles[1] )
-            end = project2plane( imgCoord=navLine[1], coord=oldPose[:2], height=oldAltitude, 
-                heading=oldPose[2], angleFB=oldAngles[0], angleLR=oldAngles[1] )
-            print start
-            print end
-            if start and end:
-              preRefLine = Line(start, end)
-              viewlog.dumpBeacon( start, index=3 )
-              viewlog.dumpBeacon( end, index=3 )
-              obst = []
-              for p in rect2BLBRTRTL(rect):
-                p2d = project2plane( imgCoord=p, coord=oldPose[:2], height=oldAltitude, 
-                  heading=oldPose[2], angleFB=oldAngles[0], angleLR=oldAngles[1] )
-                if p2d:
-                  viewlog.dumpBeacon( p2d )
-                  obst.append( p2d )
-              if len( obst ) == 4:
-                widthArr = roadWidthArr( obst )
-#                print "ROAD widths:", " ".join(["%.1f" % w for w in widthArr])
-                widthMin,widthMax = min(widthArr), max(widthArr)
-                if widthMin >= ROAD_WIDTH_MIN and widthMax <= ROAD_WIDTH_MAX and widthMax-widthMin <= ROAD_WIDTH_VARIANCE:
-                  refLine = preRefLine
-                  viewlog.dumpObstacles( [[start,end]] )
-                else:
-                  print "REJECTED widths:", " ".join(["%.1f" % w for w in widthArr])
-
-              #obst.append( obst[0] ) # close loop
-              #viewlog.dumpObstacles( [obst] )
+          if oldAltitude == None:
+            oldAltitude = altitude
+          debugImg = None
+          if drone.replayLog != None:
+            debugFilename = "tmp_%04d.jpg" % (frameNumber/FRAMES_PER_INDEX)            
+            debugImg = cv2.imread( debugFilename )
+          line = chooseBestWidth( rects, coord=oldPose[:2], height=oldAltitude, 
+              heading=oldPose[2], angleFB=oldAngles[0], angleLR=oldAngles[1], debugImg=debugImg )
+          if line:
+            viewlog.dumpBeacon( line.start, index=3 )
+            viewlog.dumpBeacon( line.end, index=3 )
+            refLine = line
+            if drone.replayLog != None:
+              cv2.imwrite( debugFilename, debugImg )
         else:
           print len(rects)
 
