@@ -105,10 +105,15 @@ def processFrame( frame, debug=False ):
           hulls.append( hull )
           # select the one with the smallest area
           if len(cnt) >= MIN_ROAD_AREA:
-            if selected == None or selected[0] > len(cnt):
-              selected = len(cnt), hull
+            rect = rect2BLBRTRTL([(a[0][0],a[0][1]) for a in approx4pts( hull )] )
+            if rect != None:
+              bl,br,tr,tl = rect
+              if br[1]-bl[1] > tr[1]-tl[1]:
+                # make sure that direction is forward
+                if selected == None or selected[0] > len(cnt):
+                  selected = len(cnt), hull, rect
     if selected:
-      result.append( [(a[0][0],a[0][1]) for a in approx4pts( selected[1] )] )
+      result.append( selected[2] )
     if debug:
       allHulls.extend( hulls )
       if selected != None:
