@@ -343,7 +343,8 @@ def competeRobotemRovne( drone, desiredHeight = 1.5 ):
         tiltCompensation = Pose(desiredHeight*oldAngles[0], desiredHeight*oldAngles[1], 0) # TODO real height?
         print "FRAME", frameNumber/15, "[%.1f %.1f]" % (math.degrees(oldAngles[0]), math.degrees(oldAngles[1])),
 #        print "angle", math.degrees(drone.angleFB-oldAngles[0]), math.degrees(drone.angleLR-oldAngles[1])
-        if len(rects) > 0:
+        if rects != None and len(rects) > 0:
+          # note, that "rects" could be None, when video processing is OFF (g_processingEnabled==False)
           if oldAltitude == None:
             oldAltitude = altitude
           debugImg = None
@@ -365,7 +366,7 @@ def competeRobotemRovne( drone, desiredHeight = 1.5 ):
             if drone.replayLog != None:
               cv2.imwrite( debugFilename, debugImg )
         else:
-          print len(rects)
+          print rects
 
         desiredSpeed = MAX_ALLOWED_SPEED
         if videoDelay > MAX_ALLOWED_VIDEO_DELAY:
