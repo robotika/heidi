@@ -148,6 +148,7 @@ def timeName( prefix, ext ):
   return filename
 
 g_pave = None
+g_processingEnabled = True # shared multiprocess variable (!)
 
 def wrapper( packet ):
   global g_pave
@@ -165,7 +166,10 @@ def wrapper( packet ):
       ret, frame = cap.read()
       assert ret
       if ret:
-        return (frameNumber( header ), timestamp(header)), processFrame( frame, debug=False )
+        result = None
+        if g_processingEnabled:
+          result = processFrame( frame, debug=False )
+        return (frameNumber( header ), timestamp(header)), result
     header,payload = g_pave.extract()
 
 g_queueResults = multiprocessing.Queue()
@@ -256,6 +260,24 @@ class RobotemRovneDrone( ARDrone2 ):
       self.lastImageResult = self.loggedVideoResult()
 
 
+def downloadOldVideo( drone, timeout ):
+  "download video if it is delayed more than MAX_VIDEO_DELAY"
+  global g_processingEnabled
+  restoreProcessing = g_processingEnabled
+  print "Waiting for video to start ..."
+  startTime = drone.time
+  while drone.time < startTime + timeout:
+    if drone.lastImageResult != None:
+      (frameNumber, timestamp), rects = drone.lastImageResult
+      videoTime = correctTimePeriod( timestamp/1000., ref=drone.time )
+      videoDelay = drone.time - videoTime
+      print videoDelay
+      if videoDelay < MAX_ALLOWED_VIDEO_DELAY:
+        print "done"
+        break
+      g_processingEnabled = False
+    drone.update()
+  g_processingEnabled = restoreProcessing
 
 def competeRobotemRovne( drone, desiredHeight = 1.5 ):
   drone.speed = 0.1
@@ -267,6 +289,7 @@ def competeRobotemRovne( drone, desiredHeight = 1.5 ):
   try:
     drone.wait(1.0)
     drone.setVideoChannel( front=True )
+    downloadOldVideo( drone, timeout=20.0 )
     drone.takeoff()
     poseHistory = []
     startTime = drone.time
