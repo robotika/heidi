@@ -292,6 +292,9 @@ def competeRobotemRovne( drone, desiredHeight = 1.5 ):
           altitude = max( altSonar, altVision ) # sonar is 0.0 sometimes (no ECHO)
 
       sz = max( -0.2, min( 0.2, desiredHeight - altitude ))
+      if altitude > 2.5:
+        # wind and "out of control"
+        sz = max( -0.5, min( 0.5, desiredHeight - altitude ))
 
       sx = max( 0, min( drone.speed, desiredSpeed - drone.vx ))
 
