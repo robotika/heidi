@@ -205,7 +205,7 @@ def roadWidthArr( roadPts ):
 def roadWidth( roadPts ):
   return roadWidthArr( roadPts)[0]
 
-def chooseBestWidth( rects, coord, height, heading, angleFB, angleLR, debugImg=None ):
+def chooseBestWidth( rects, coord, height, heading, angleFB, angleLR, debugImg=None, color=None ):
   best = None
   for rect in rects:
     navLine = trapezoid2line( rect )
@@ -234,7 +234,9 @@ def chooseBestWidth( rects, coord, height, heading, angleFB, angleLR, debugImg=N
     cv2.drawContours( debugImg, [np.int0(best[2])],0,(255,0,0),2 )
     navLine = trapezoid2line( best[2] )
     if navLine:
-      drawArrow( debugImg, navLine[0], navLine[1], (0,0,255), 4)
+      if color == None:
+        color = (0,0,255)
+      drawArrow( debugImg, navLine[0], navLine[1], color, 4)
 
   return best[1]
 
@@ -354,16 +356,23 @@ def competeRobotemRovne( drone, desiredHeight = 1.5 ):
           line = chooseBestWidth( rects, coord=oldPose[:2], height=oldAltitude, 
               heading=oldPose[2], angleFB=oldAngles[0], angleLR=oldAngles[1], debugImg=debugImg )
           if line:
+            rejected = False
             if refLine != None:
               print "%.1fdeg %.2fm" % (math.degrees(normalizeAnglePIPI(refLine.angle - line.angle)), refLine.signedDistance( line.start ))
               if abs(normalizeAnglePIPI(refLine.angle - line.angle)) < MAX_REF_LINE_ANGLE and \
                   abs(refLine.signedDistance( line.start )) < MAX_REF_LINE_DIST:
                 refLine = line
+              else:
+                rejected = True
             else:
               refLine = line
             viewlog.dumpBeacon( line.start, index=3 )
             viewlog.dumpBeacon( line.end, index=3 )
             if drone.replayLog != None:
+              if rejected:
+                # redraw image with yellow color
+                chooseBestWidth( rects, coord=oldPose[:2], height=oldAltitude, 
+                    heading=oldPose[2], angleFB=oldAngles[0], angleLR=oldAngles[1], debugImg=debugImg, color=(0,255,255) )
               cv2.imwrite( debugFilename, debugImg )
         else:
           print rects
