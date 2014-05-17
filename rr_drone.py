@@ -112,10 +112,12 @@ def processFrame( frame, debug=False ):
             rect = rect2BLBRTRTL([(a[0][0],a[0][1]) for a in approx4pts( hull )] )
             if rect != None:
               bl,br,tr,tl = rect
-              p = tuple([int(x) for x in Line(bl,tl).intersect( Line(br,tr) )])
-              if br[0]-bl[0] > tr[0]-tl[0] and p[1] > 0 and p[1] < frame.shape[0]:
-                # make sure that direction is forward and in the image
-                result.append( rect )
+              tmpInt = Line(bl,tl).intersect( Line(br,tr) )
+              if tmpInt != None:
+                p = tuple([int(x) for x in tmpInt])
+                if br[0]-bl[0] > tr[0]-tl[0] and p[1] > 0 and p[1] < frame.shape[0]:
+                  # make sure that direction is forward and in the image
+                  result.append( rect )
 #                if selected == None or selected[0] > len(cnt):
 #                  selected = len(cnt), hull, rect
 #    if selected:
