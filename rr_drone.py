@@ -27,11 +27,11 @@ MAX_ALLOWED_VIDEO_DELAY = 2.0 # in seconds, then it will wait (desiredSpeed = 0.
 
 MIN_ROAD_AREA = 18000 # filter out small areas
 
-ROAD_WIDTH_MIN = 1.0
-ROAD_WIDTH_MAX = 5.0
+ROAD_WIDTH_MIN = 2.5
+ROAD_WIDTH_MAX = 6.0
 ROAD_WIDTH_VARIANCE = 2.0
 
-ROAD_WIDTH = 3.0 # expected width
+ROAD_WIDTH = 4.35 # expected width in Pisek (was 3.0)
 DEFAULT_REF_LINE = None  # TODO fill proper Line((0,0), magicEnd)
 MAX_REF_LINE_ANGLE = math.radians(20)
 MAX_REF_LINE_DIST = 2.0
