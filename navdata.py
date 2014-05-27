@@ -266,8 +266,10 @@ def parseNavData( packet ):
 
     if tag == NAVDATA_VISION_DETECT_TAG:
       (countTypes, x, y, height, width, dist, oriAngle, cameraSource) = parseVisionDetectTag( "ABCD" + "".join(values), 0 )
-      print "TAG", countTypes
-      print "TAG", x[0],y[0], height[0], width[0], dist[0]/100.0, oriAngle[0], cameraSource[1]
+      if countTypes[0] > 0:
+        print "TAG", time, countTypes, x[0], y[0], height[0], width[0], dist[0]/100.0, oriAngle[0], cameraSource[1]
+      else:
+        print "TAG", time, countTypes
   if time and ctrl != 2:
     print "ALT\t%f\t%d\t%d" % (time, ctrl, alt)
   return offset
