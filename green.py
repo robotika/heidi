@@ -6,10 +6,11 @@
 """
 import sys
 import cv2
+import cimg
 
 from airrace import main as imgmain # image debugging TODO move to launcher
 
-def processGreen( frame, debug=False ):
+def processGreenVer0( frame, debug=False ):
   for y in xrange(frame.shape[0]):
     for x in xrange(frame.shape[1]):
       b,g,r = frame[y][x]
@@ -17,6 +18,10 @@ def processGreen( frame, debug=False ):
         frame[y][x] = (0, 255, 0)
   cv2.imshow('image', frame)
 
+def processGreen( frame, debug=False ):
+  cimg.green( frame, 1.1 )
+  cv2.imshow('image', frame)
+
 if __name__ == "__main__":
   imgmain( sys.argv, processGreen )
-
+ 
