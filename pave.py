@@ -39,6 +39,13 @@ def isIFrame( header ):
   "return True if I-Frame"
   return struct.unpack_from("B", header, 30)[0] == 1
 
+def frameEncodedWidth( header ):
+  return struct.unpack_from("H", header, 12)[0]
+
+def frameEncodedHeight( header ):
+  return struct.unpack_from("H", header, 14)[0]
+
+
 def frameNumber( header ):
   return struct.unpack_from("I", header, 20)[0]
 
