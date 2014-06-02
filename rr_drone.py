@@ -12,7 +12,8 @@ import cv2
 import math
 import numpy as np
 
-from pave import PaVE, isIFrame, frameNumber, timestamp, correctTimePeriod
+from pave import PaVE, isIFrame, frameNumber, timestamp, correctTimePeriod, frameEncodedWidth, frameEncodedHeight
+
 from sourcelogger import SourceLogger
 from ardrone2 import ARDrone2, ManualControlException, manualControl, normalizeAnglePIPI, distance
 import viewlog
@@ -21,6 +22,8 @@ from pose import Pose
 
 from airrace import main as imgmain # image debugging TODO move to launcher
 from airrace import saveIndexedImage, FRAMES_PER_INDEX
+
+import cvideo
 
 MAX_ALLOWED_SPEED = 0.8
 MAX_ALLOWED_VIDEO_DELAY = 2.0 # in seconds, then it will wait (desiredSpeed = 0.0)
@@ -31,7 +34,7 @@ ROAD_WIDTH_MIN = 2.5
 ROAD_WIDTH_MAX = 6.0
 ROAD_WIDTH_VARIANCE = 2.0
 
-ROAD_WIDTH = 4.35 # expected width in Pisek (was 3.0)
+ROAD_WIDTH = 2.6 # garden, 4.35 # expected width in Pisek (was 3.0)
 DEFAULT_REF_LINE = None  # TODO fill proper Line((0,0), magicEnd)
 MAX_REF_LINE_ANGLE = math.radians(20)
 MAX_REF_LINE_DIST = 2.0
@@ -152,20 +155,26 @@ def timeName( prefix, ext ):
 g_pave = None
 g_processingEnabled = True # shared multiprocess variable (!)
 
+g_img = None
+
+
 def wrapper( packet ):
   global g_pave
+  global g_img
   if g_pave == None:
     g_pave = PaVE()
+    cvideo.init()
+    g_img = np.zeros([720,1280,3], dtype=np.uint8)
   g_pave.append( packet )
   header,payload = g_pave.extract()
   while payload:
     if isIFrame( header ):
-      tmpFile = open( "tmp.bin", "wb" )
-      tmpFile.write( payload )
-      tmpFile.flush()
-      tmpFile.close()
-      cap = cv2.VideoCapture( "tmp.bin" )
-      ret, frame = cap.read()
+      w,h = frameEncodedWidth(header), frameEncodedHeight(header)
+      if g_img.shape[0] != h or g_img.shape[1] != w:
+        print g_img.shape, (w,h)
+        g_img = np.zeros([h,w,3], dtype=np.uint8)
+      ret = cvideo.frame( g_img, isIFrame(header) and 1 or 0, payload )
+      frame = g_img
       assert ret
       if ret:
         result = None
