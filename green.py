@@ -6,7 +6,7 @@
 """
 import sys
 import cv2
-import cimg
+#import cimg
 
 from airrace import main as imgmain # image debugging TODO move to launcher
 
@@ -22,6 +22,31 @@ def processGreen( frame, debug=False ):
   cimg.green( frame, 1.1 )
   cv2.imshow('image', frame)
 
+def avoidGreen( frame, fromX, toX, fromY, toY, limit ):
+  # code to be realized in C
+  count = 0
+  step = 1 if fromX < toX else -1
+  for x in xrange(fromX, toX, step):
+    for y in xrange(fromY, toY):
+      b,g,r = frame[y][x]
+      if g > 10 and g > 1.1*r and g > 1.1*b:
+        frame[y][x] = (0, 255, 0)
+        count +=1
+      else:
+        frame[y][x] = (255, 255, 255)
+    if count > limit:
+      break
+  return x
+
+def processAvoidGreen( frame, debug=False ):
+  # slow version to explain the algoritm
+  x = avoidGreen( frame, 700, 1280, 100, 200, limit = 120 )
+  cv2.circle( frame, (x,150), 10, (0,0,255), 3 )
+  x = avoidGreen( frame, 650, 0, 100, 200, limit = 120 )
+  cv2.circle( frame, (x,150), 10, (0,0,255), 3 )
+  cv2.imshow('image', frame)
+  return x
+
 if __name__ == "__main__":
-  imgmain( sys.argv, processGreen )
+  imgmain( sys.argv, processAvoidGreen ) #processGreen )
  
