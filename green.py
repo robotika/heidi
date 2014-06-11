@@ -6,7 +6,7 @@
 """
 import sys
 import cv2
-#import cimg
+import cimg
 
 from airrace import main as imgmain # image debugging TODO move to launcher
 
@@ -22,7 +22,11 @@ def processGreen( frame, debug=False ):
   cimg.green( frame, 1.1 )
   cv2.imshow('image', frame)
 
-def avoidGreen( frame, fromX, toX, fromY, toY, limit ):
+"""
+  Avoid Green
+  - for given rectangle where direction is defined by fromX to toX count green pixels until limit is reached
+"""
+def avoidGreen0( frame, fromX, toX, fromY, toY, limit ):
   # code to be realized in C
   count = 0
   step = 1 if fromX < toX else -1
@@ -37,6 +41,11 @@ def avoidGreen( frame, fromX, toX, fromY, toY, limit ):
     if count > limit:
       break
   return x
+
+def avoidGreen( frame, fromX, toX, fromY, toY, limit ):
+  "numpy implementation"
+  return cimg.avoidGreen( frame, fromX, toX, fromY, toY, limit, 1.1 )
+
 
 def processAvoidGreen( frame, debug=False ):
   # slow version to explain the algoritm
