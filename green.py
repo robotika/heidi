@@ -54,6 +54,7 @@ def processAvoidGreen( frame, debug=False ):
   x = avoidGreen( frame, 650, 0, 100, 200, limit = 120 )
   cv2.circle( frame, (x,150), 10, (0,0,255), 3 )
   cv2.imshow('image', frame)
+  cv2.imwrite("green.jpg", frame)
   return x
 
 if __name__ == "__main__":
