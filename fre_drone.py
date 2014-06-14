@@ -67,6 +67,7 @@ def competeFieldRobot( drone, desiredHeight = 1.5 ):
   maxVideoDelay = 0.0
   maxControlGap = 0.0
   desiredSpeed = MAX_ALLOWED_SPEED
+  refPoint = (0,0)
   
   try:
     drone.wait(1.0)
@@ -104,16 +105,26 @@ def competeFieldRobot( drone, desiredHeight = 1.5 ):
 
       # error definition ... if you substract that you get desired position or angle
       # error is taken from the path point of view, x-path direction, y-positive left, angle-anticlockwise
-      errY, errA = 0.0, 0.0
+      errX, errY, errA = 0.0, 0.0, 0.0
 #      if refLine:
 #        errY = refLine.signedDistance( drone.coord )
 #        errA = normalizeAnglePIPI( drone.heading - refLine.angle )
 
+      if refPoint:
+        pose = Pose(drone.coord[0], drone.coord[1], drone.heading)
+        landPose = Pose( refPoint[0], refPoint[1], drone.heading )  # ignore heading for the moment
+        diff = pose.sub( landPose )
+        #print diff
+        errX, errY = diff.x, diff.y
+
+
+
       # get the height first
-      if drone.coord[2] < desiredHeight - 0.1 and drone.time-startTime < 5.0:
-        sx = 0.0
+#      if drone.coord[2] < desiredHeight - 0.1 and drone.time-startTime < 5.0:
+#        sx = 0.0
       # error correction
       # the goal is to have errY and errA zero in 1 second -> errY defines desired speed at given distance from path
+      sx = max( -0.2, min( 0.2, -errX-drone.vx ))/2.0
       sy = max( -0.2, min( 0.2, -errY-drone.vy ))/2.0
       
       # there is no drone.va (i.e. derivative of heading) available at the moment ... 
