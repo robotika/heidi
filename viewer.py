@@ -124,7 +124,7 @@ def loadData( filename ):
       assert( int(arr[1]) == 1 )
       index = len(arr)>4 and int(arr[4]) or 0
       if len(arr) == 7:
-        scans.append( ( ( float(arr[2]), float(arr[3]), 0.0 ), -1.0-index/10.0, [int(c) for c in arr[-3:]]) ) # color param
+        scans.append( ( ( float(arr[2]), float(arr[3]), 0.0 ), -1.5, [int(c) for c in arr[-3:]]) ) # color param
       else:
         scans.append( ( ( float(arr[2]), float(arr[3]), 0.0 ), -1.0-index/10.0) )      
     elif arr[0] == "Puck":
