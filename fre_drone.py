@@ -117,7 +117,7 @@ def competeFieldRobot( drone, desiredHeight = 1.5 ):
 #        print "%.2f\t%.2f\t%.2f\t%.1f\t%.1f" % (drone.time, tagDist*(tagY-480)*SCALE, tagDist*(tagX-640)*SCALE, math.degrees(drone.angleFB), math.degrees(drone.angleLR))
         tiltCompensation = Pose(tagDist*drone.angleFB, tagDist*drone.angleLR, 0)
         pose = Pose(drone.coord[0], drone.coord[1], drone.heading).add(tiltCompensation)
-        offset = Pose(tagDist*(tagY-480)*SCALE, tagDist*(tagX-640)*SCALE, 0.0)
+        offset = Pose(tagDist*(480-tagY)*SCALE, tagDist*(tagX-640)*SCALE, 0.0)
         pose = pose.add( offset )
         refPoint = (pose.x, pose.y)
 #        print refPoint
