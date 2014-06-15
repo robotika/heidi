@@ -68,6 +68,8 @@ def competeFieldRobot( drone, desiredHeight = 1.5 ):
   maxControlGap = 0.0
   desiredSpeed = MAX_ALLOWED_SPEED
   refPoint = (0,0)
+  foundTagTime = None
+  searchSeq = [(0,0), (2,0), (0,-2), (-2,0), (0,2), (0,0)]
   
   try:
     drone.wait(1.0)
@@ -78,7 +80,8 @@ def competeFieldRobot( drone, desiredHeight = 1.5 ):
     startTime = drone.time
     sx,sy,sz,sa = 0,0,0,0
     lastUpdate = None
-    while drone.time < startTime + 20.0:
+    stepTime = drone.time
+    while drone.time < startTime + 30.0:
       altitude = desiredHeight
       if drone.altitudeData != None:
         altVision = drone.altitudeData[0]/1000.0
@@ -112,15 +115,28 @@ def competeFieldRobot( drone, desiredHeight = 1.5 ):
 
       if len(drone.visionTag) > 0:
         SCALE = 0.17/(2*74)
-#        print drone.visionTag
         tagX, tagY, tagDist = drone.visionTag[0][0], drone.visionTag[0][1], drone.visionTag[0][4]/100.0
-#        print "%.2f\t%.2f\t%.2f\t%.1f\t%.1f" % (drone.time, tagDist*(tagY-480)*SCALE, tagDist*(tagX-640)*SCALE, math.degrees(drone.angleFB), math.degrees(drone.angleLR))
         tiltCompensation = Pose(tagDist*drone.angleFB, tagDist*drone.angleLR, 0)
         pose = Pose(drone.coord[0], drone.coord[1], drone.heading).add(tiltCompensation)
         offset = Pose(tagDist*(480-tagY)*SCALE, tagDist*(tagX-640)*SCALE, 0.0)
         pose = pose.add( offset )
         refPoint = (pose.x, pose.y)
-#        print refPoint
+        if foundTagTime == None:
+          print drone.visionTag
+          print "%.2f\t%.2f\t%.2f\t%.1f\t%.1f" % (drone.time, tagDist*(tagY-480)*SCALE, tagDist*(tagX-640)*SCALE, math.degrees(drone.angleFB), math.degrees(drone.angleLR))
+          print refPoint
+        foundTagTime = drone.time
+      else:
+        if foundTagTime != None and drone.time - foundTagTime > 3.0:
+          foundTagTime = None
+          print "LOST TAG"
+          searchSeq = [(x+drone.coord[0], y+drone.coord[1]) for (x,y) in [(0,0), (2,0), (0,-2), (-2,0), (0,2), (0,0)]]
+
+      if foundTagTime == None and len(searchSeq) > 0 and drone.time - stepTime > 3.0:
+        refPoint = searchSeq[0]
+        searchSeq = searchSeq[1:]
+        print "STEP", refPoint
+        stepTime = drone.time
 
       if refPoint:
         pose = Pose(drone.coord[0], drone.coord[1], drone.heading)
