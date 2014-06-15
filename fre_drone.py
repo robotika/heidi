@@ -78,7 +78,7 @@ def competeFieldRobot( drone, desiredHeight = 1.5 ):
     startTime = drone.time
     sx,sy,sz,sa = 0,0,0,0
     lastUpdate = None
-    while drone.time < startTime + 10.0:
+    while drone.time < startTime + 20.0:
       altitude = desiredHeight
       if drone.altitudeData != None:
         altVision = drone.altitudeData[0]/1000.0
@@ -109,6 +109,18 @@ def competeFieldRobot( drone, desiredHeight = 1.5 ):
 #      if refLine:
 #        errY = refLine.signedDistance( drone.coord )
 #        errA = normalizeAnglePIPI( drone.heading - refLine.angle )
+
+      if len(drone.visionTag) > 0:
+        SCALE = 0.17/(2*74)
+#        print drone.visionTag
+        tagX, tagY, tagDist = drone.visionTag[0][0], drone.visionTag[0][1], drone.visionTag[0][4]/100.0
+#        print "%.2f\t%.2f\t%.2f\t%.1f\t%.1f" % (drone.time, tagDist*(tagY-480)*SCALE, tagDist*(tagX-640)*SCALE, math.degrees(drone.angleFB), math.degrees(drone.angleLR))
+        tiltCompensation = Pose(tagDist*drone.angleFB, tagDist*drone.angleLR, 0)
+        pose = Pose(drone.coord[0], drone.coord[1], drone.heading).add(tiltCompensation)
+        offset = Pose(tagDist*(tagY-480)*SCALE, tagDist*(tagX-640)*SCALE, 0.0)
+        pose = pose.add( offset )
+        refPoint = (pose.x, pose.y)
+#        print refPoint
 
       if refPoint:
         pose = Pose(drone.coord[0], drone.coord[1], drone.heading)
