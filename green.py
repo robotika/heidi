@@ -46,16 +46,24 @@ def avoidGreen( frame, fromX, toX, fromY, toY, limit ):
   "numpy implementation"
   return cimg.avoidGreen( frame, fromX, toX, fromY, toY, limit, 1.1 )
 
+def stripLeftRight( frame, fromY, toY, limit ):
+  width = frame.shape[1]
+  xL = avoidGreen( frame, width/2, 0, fromY, toY, limit=limit )
+  xR = avoidGreen( frame, width/2, width, fromY, toY, limit=limit )
+  return xL,xR
+
 
 def processAvoidGreen( frame, debug=False ):
-  # slow version to explain the algoritm
-  x = avoidGreen( frame, 700, 1280, 100, 200, limit = 120 )
-  cv2.circle( frame, (x,150), 10, (0,0,255), 3 )
-  x = avoidGreen( frame, 650, 0, 100, 200, limit = 120 )
-  cv2.circle( frame, (x,150), 10, (0,0,255), 3 )
-  cv2.imshow('image', frame)
-  cv2.imwrite("green.jpg", frame)
-  return x
+  height, width, colors = frame.shape
+  offset = 0
+  stripWidth = 70
+  limit = 120
+  topLR = stripLeftRight( frame, offset, offset+stripWidth, limit=limit )
+  bottomLR = stripLeftRight( frame, height-offset-stripWidth, height-offset, limit=limit )
+  if debug:
+    cv2.imshow('image', frame)
+    cv2.imwrite("green.jpg", frame)
+  return topLR, bottomLR
 
 if __name__ == "__main__":
   imgmain( sys.argv, processAvoidGreen ) #processGreen )
