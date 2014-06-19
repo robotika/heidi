@@ -25,6 +25,8 @@ import cvideo
 #from rr_drone import downloadOldVideo
 MAX_ALLOWED_SPEED = 0.8
 
+ROW_WIDTH = 0.75 #0.4
+
 ###### -------------------- ready for major refactoring -------------------------
 
 def timeName( prefix, ext ):
@@ -214,7 +216,7 @@ def evalRowData( rowTopBottom ):
     if min(widthTop, widthBottom) > 150 and max(widthTop, widthBottom) < 350:
       return (xL+xR)/2, (xbL+xbR)/2
 
-def followRow( drone, desiredHeight = 1.0, timeout = 10.0 ): 
+def followRow( drone, desiredHeight = 1.5, timeout = 10.0 ): 
   maxControlGap = 0.0
   maxVideoDelay = 0.0
   desiredSpeed = MAX_ALLOWED_SPEED
@@ -258,7 +260,7 @@ def followRow( drone, desiredHeight = 1.0, timeout = 10.0 ):
       validRow = evalRowData( rowTopBottom )
       print "FRAME", frameNumber/15, "[%.1f %.1f]" % (math.degrees(oldAngles[0]), math.degrees(oldAngles[1])), validRow
       if validRow:
-        sp = groundPose( *rowTopBottom, scale=0.75/((validRow[0]+validRow[1])/2.0))
+        sp = groundPose( *rowTopBottom, scale=ROW_WIDTH/((validRow[0]+validRow[1])/2.0))
         sPose = Pose( *oldPose ).add(tiltCompensation).add( sp )
         refLine = Line( (sPose.x,sPose.y), (sPose.x + math.cos(sPose.heading), sPose.y + math.sin(sPose.heading)) )
 
@@ -292,7 +294,7 @@ def competeFieldRobot( drone, desiredHeight = 1.5 ):
     print "NAVI-ON"
     startTime = drone.time
 #    maxControlGap = stayAtPosition( drone, desiredHeight=desiredHeight, timeout=30.0 )
-    maxControlGap = followRow( drone, desiredHeight=desiredHeight, timeout=20.0 )
+    maxControlGap = followRow( drone, desiredHeight=desiredHeight, timeout=25.0 )
     lastUpdate = None
     print "NAVI-OFF", drone.time - startTime
     drone.hover(0.5)
