@@ -1,0 +1,6 @@
+- installation (set PYTHONPATH to heidi)
+
+- OpenCV2, PyGame
+
+- linux, windows
+
