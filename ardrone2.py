@@ -11,6 +11,7 @@ import struct
 import socket
 import gzip
 import math
+import os
 
 if sys.platform == 'win32':
   import msvcrt  # for kbhit
@@ -192,6 +193,8 @@ class ARDrone2:
 #            break
         self.console = SourceLogger( None, metaLog.getLog("console:") ).get
     else:
+      if not os.path.isdir("logs"):
+        os.mkdir("logs")
       self.filename = datetime.datetime.now().strftime("logs/navdata_%y%m%d_%H%M%S.log.gz")
       self.io = MySockets( self.filename, metaLog=metaLog )
       if self.metaLog:
