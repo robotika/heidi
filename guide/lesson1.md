@@ -51,3 +51,14 @@ The last step should be always to land. The command is similar to take off
 ("AT*REF") except it sets different flags and waits for changing state to
 "landed".
 
+----------------------
+
+Example of things !!NOT DO DO!!
+
+2014-06-23:
+... I just successfully completed lesson 1, against your advice inside my small office ;-).
+The drone managed to take off, hover for three seconds just below and somewhat against the ceiling, and then it landed safely.
+... 
+
+DO NOT DO THAT! ... you can easily break your new toy! Believe me, I have done that (two years ago)!
+
