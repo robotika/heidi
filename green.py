@@ -9,6 +9,7 @@ import cv2
 import cimg
 
 from airrace import main as imgmain # image debugging TODO move to launcher
+from airrace import saveIndexedImage
 
 def processGreenVer0( frame, debug=False ):
   for y in xrange(frame.shape[0]):
@@ -62,7 +63,7 @@ def processAvoidGreen( frame, debug=False ):
   bottomLR = stripLeftRight( frame, height-offset-stripWidth, height-offset, limit=limit )
   if debug:
     cv2.imshow('image', frame)
-    cv2.imwrite("green.jpg", frame)
+    saveIndexedImage( frame )
   return topLR, bottomLR
 
 if __name__ == "__main__":
