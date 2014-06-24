@@ -1,5 +1,5 @@
 """
-  Lesson 2 - manual emergency stop
+  Lesson 3 - logging examples
 """
 from ardrone2 import ARDrone2, ManualControlException
 
@@ -10,11 +10,13 @@ def testLesson3( drone ):
     except ManualControlException, e:
         print "ManualControlException"
     drone.land()
+    print "Battery", drone.battery
 
 
 
 if __name__ == "__main__":
     import launcher
+    import sys
     launcher.launch( sys.argv, ARDrone2, testLesson3 )
 
 
