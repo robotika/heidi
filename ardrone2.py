@@ -14,7 +14,14 @@ import math
 import os
 
 if sys.platform == 'win32':
+  windows = True
+else:
+  windows = False
+
+if windows:
   import msvcrt  # for kbhit
+else:
+  import pygame
 
 import viewlog
 from line import Line
@@ -78,6 +85,13 @@ def myKbhit():
   if key == '\xe0': # Arrows
     key = (key, msvcrt.getch())
   return key
+
+def myPygame():
+  events = pygame.event.get()
+  for event in events:
+    if event.type == pygame.KEYDOWN:
+      return 1
+  return 0
 
 class MySockets:
   def __init__( self, logFilename, metaLog=None ):
@@ -197,6 +211,13 @@ class ARDrone2:
         os.mkdir("logs")
       self.filename = datetime.datetime.now().strftime("logs/navdata_%y%m%d_%H%M%S.log.gz")
       self.io = MySockets( self.filename, metaLog=metaLog )
+      if console == None:
+        if windows:
+          console = myKbhit
+        else:
+          pygame.init()
+          screen = pygame.display.set_mode((100,100))
+          console = myPygame
       if self.metaLog:
 #        sonarFilename = datetime.datetime.now().strftime("logs/sonar_src_%y%m%d_%H%M%S.log")
 #        self.metaLog.write("sonar: "+sonarFilename+'\n' )
@@ -205,9 +226,9 @@ class ARDrone2:
 #        self.sonar.start()
         consoleFilename = datetime.datetime.now().strftime("logs/console_src_%y%m%d_%H%M%S.log")
         self.metaLog.write("console: "+consoleFilename+'\n' )
-        if console == None:
-          console = myKbhit
         self.console = SourceLogger( console, consoleFilename ).get
+      else:
+        self.console = SourceLogger( console, 'metalog' ).get
     print self.filename
     self.speed = speed
     self.manualControl = False
