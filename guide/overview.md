@@ -6,7 +6,7 @@ Flying autonomous Parrot AR Drone 2 with Python
 - [Lesson 2 - manual control](lesson2.md)
 - [Lesson 3 - logging](lesson3.md)
 - [Lesson 4 - fly forward](lesson4.md)
-- Lesson 5 - fly at given hight
+- [Lesson 5 - fly at given height](lesson5.md)
 
 - recording video
 
