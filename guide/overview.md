@@ -7,8 +7,7 @@ Flying autonomous Parrot AR Drone 2 with Python
 - [Lesson 3 - logging](lesson3.md)
 - [Lesson 4 - fly forward](lesson4.md)
 - [Lesson 5 - fly at given height](lesson5.md)
-
-- recording video
+- [Lesson 6 - video recording](lesson6.md)
 
 # Advanced level (cv2)
 - flying 8 figure
