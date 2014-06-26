@@ -100,7 +100,6 @@ class FieldRobotDrone( ARDrone2 ):
       metaLog.write("cv2: "+name+'\n' )
       self.loggedVideoResult = SourceLogger( getOrNone, name ).get
       self.startVideo( wrapper, g_queueResults, record=True, highResolution=self.videoHighResolution )
-      self.startVideo( packetProcessor=None, inputQueue=None, record=True, highResolution=self.videoHighResolution )
     else:
       assert metaLog
       self.loggedVideoResult = SourceLogger( None, metaLog.getLog("cv2:") ).get
