@@ -1,11 +1,13 @@
 """
-  Lesson 1 - basic functions (takeoff, hover and land)
-  Beware of missing manual control! Fly at large open places without wind!
+  Lesson 1 - before you takeoff ...
 """
+import sys
+sys.path.append('..') # access to drone source without installation
 from ardrone2 import ARDrone2
 
 drone = ARDrone2()
-drone.takeoff()
-drone.hover(3.0)
-drone.land()
+
+drone.wait(10.0)      # active waiting for 10 seconds
+print drone.battery
+print drone.coord     # X, Y, Z coordinate
 

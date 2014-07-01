@@ -2,8 +2,8 @@ Flying autonomous Parrot AR Drone 2 with Python
 
 # Basic level
 
-- [Lesson 1 - takeoff, hover, land](lesson1.md)
-- [Lesson 2 - manual control](lesson2.md)
+- [Lesson 1 - before you takeoff ...](lesson1.md)
+- [Lesson 2 - manual control, takeoff, hover, land](lesson2.md)
 - [Lesson 3 - logging](lesson3.md)
 - [Lesson 4 - fly forward](lesson4.md)
 - [Lesson 5 - fly at given height](lesson5.md)

@@ -1,64 +1,54 @@
 Flying autonomous Parrot AR Drone 2 with Python
 
-Lesson 1
+Lesson 1 - Before you takeoff
 
-In this lesson we will demonstrate basic functions provided by Parrot ARDrone2
+In this revised lesson we will test communication with your drone via basic functions provided by Parrot ARDrone2
 Wi-Fi API. Power on the AR Drone 2 and connect to it. The drone acts as Access
 Point with DHCP - your notebook should get IP like 192.168.1.2.
 
-Note, that this first simple program does not have _any_ (!) protection so make
+In this first lesson we will not fly. For all further lessons make
 sure that you have enough space available, there is no wind etc. Also always
 fly with indoor protective cover even if you fly autonomously outside.
 
 Code:
 
-from ardrone2 import ARDrone2
+    import sys
+    sys.path.append('..') # access to drone source without installation
 
-This line will import class "ARDrone2". In order to successfully import the
-class it is necessary to set PYTHONPATH to directory where you can find
-"ardrone2.py". An alternative is to install drone files into Python
-directories.
+To simplify "installation" we added these two lines to all lessons. Then you do
+not need to copy any files or set PYTHONPATH. All you need is _git checkout_
+and test lessons one by one in _guide directory_.
 
+    from ardrone2 import ARDrone2
 
-drone = ARDrone2()
+This line will import class "ARDrone2". 
+
+    drone = ARDrone2()
 
 Here is hidden all creation work. "drone" is now instance of class ARDrone2,
 with initialized connection, starting log files, setting default values for all
 internal variables.
 
-drone.takeoff()
+So what we can do if flying is too dangerous for the very first lesson? We can wait ;-)
 
-Parrot provides automatic takeoff (you can have a look in the "ardrone2.py"
-source code and see that it is shortcut for repeated AT command "AT*REF=%i,
-0b10001010101000000001000000000") until drone status changes to state
-"flying".
+    drone.wait(10.0)      # active waiting for 10 seconds
 
-drone.hover( 3.0 )
+This is _active waiting_ so you talk to your drone (200 commands per second)
+and you collect current drone status. Here are two example what you can be
+interested in ... battery and coordinates. 
 
-Hovering is state, when the drone is keeping the same coordinate. This is
-mostly safe function except moments when the drone pushes against some obstacle.
-The it does not have a space how to compensate the tilt and you can easily
-brake it (as I did my first drone when I was testing in a very small room).
-Make sure you have enough space or rather jump to Lesson 2, where you have
-some kind of "emergency stop".
+    print drone.battery
+    print drone.coord     # X, Y, Z coordinate
 
-The parameter for hovering is time in seconds (we try to keep metric units if
-possible, i.e. seconds, meters and angles in radians).
+The battery status is reported as percentage. It is useful to print it both
+before and after flight. If it is too low (15%?) the drone will not take off
+any more and you can quickly see why.
 
-drone.land()
+The "drone.coord" are in metres relative to start which is (0,0,0). I have not
+test that but I would be curious what will happen if you move the drone
+withing 10 seconds of waiting time. Will the coordinates change?
 
-The last step should be always to land. The command is similar to take off
-("AT*REF") except it sets different flags and waits for changing state to
-"landed".
-
-----------------------
-
-Example of things !!NOT DO DO!!
-
-2014-06-23:
-... I just successfully completed lesson 1, against your advice inside my small office ;-).
-The drone managed to take off, hover for three seconds just below and somewhat against the ceiling, and then it landed safely.
-... 
-
-DO NOT DO THAT! ... you can easily break your new toy! Believe me, I have done that (two years ago)!
+Finally try to press any key during the test of lesson 1. The program should
+terminate and write that you did not handle _ManualControlException_ ... do not
+worry, we will fix it in the next lesson.
 
