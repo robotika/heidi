@@ -1,6 +1,8 @@
 """
   Lesson 6 - record video from starting area
 """
+import sys
+sys.path.append('..') # access to drone source without installation
 from ardrone2 import ARDrone2, ManualControlException
 
 def scanVersion0( drone, timeout=10.0 ):
@@ -29,7 +31,6 @@ def testLesson6( drone ):
 
 if __name__ == "__main__":
     import launcher
-    import sys
     launcher.launch( sys.argv, ARDrone2, testLesson6 )
 
 

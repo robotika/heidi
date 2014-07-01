@@ -1,6 +1,8 @@
 """
   Lesson 3 - logging examples
 """
+import sys
+sys.path.append('..') # access to drone source without installation
 from ardrone2 import ARDrone2, ManualControlException
 
 def testLesson3( drone ):
@@ -16,7 +18,6 @@ def testLesson3( drone ):
 
 if __name__ == "__main__":
     import launcher
-    import sys
     launcher.launch( sys.argv, ARDrone2, testLesson3 )
 
 
