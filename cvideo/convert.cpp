@@ -124,8 +124,11 @@ int get_nal_type( void *p, int len )
 
 int create( void *p, int len )
 {
-    if ( 0x67 != get_nal_type( p, len ) )
+    if ( 0x27 != (0x3F & get_nal_type( p, len )) )
+    {
+        fprintf(stderr, "get_nal_type is not 0x27, exiting\n" );
         return -1;
+    }
 
     destroy();
 
@@ -133,8 +136,8 @@ int create( void *p, int len )
     AVCodecID codec_id = CODEC_ID_H264;
 //  CodecID codec_id = CODEC_ID_MPEG4;
     int br = 1000000;
-    int w = 1280; //480;
-    int h = 720; //354;
+    int w = 640; //1280; //480;
+    int h = 368; //720; //354;
     int fps = 30; //15;
 
     // Create container
