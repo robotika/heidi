@@ -78,7 +78,6 @@ static PyObject *avoidGreen(PyObject *self, PyObject *args)
 	                                //   python vectors, cin and cout point to the row
 	                                //   of vecin and vecout, respectively
 	int fromX, toX, fromY, toY, limit;
-  int n;
 	double frac;
   int x, y;
   unsigned char r,g,b;
