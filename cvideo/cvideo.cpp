@@ -14,45 +14,6 @@ int  not_image(PyArrayObject *vec)  {
   return 0;
 }
 
-static PyObject *green(PyObject *self, PyObject *args)
-{
-  PyArrayObject *vecio;  // The python objects to be extracted from the args
-  unsigned char *ptr;             // The C vectors to be created to point to the 
-                                  //   python vectors, cin and cout point to the row
-                                  //   of vecin and vecout, respectively
-  int i,n;
-  double frac;
-  unsigned char r,g,b;
-  int count = 0;
-  
-  /* Parse tuples separately since args will differ between C fcns */
-  if (!PyArg_ParseTuple(args, "O!d", &PyArray_Type, &vecio, &frac))  return NULL;
-  if (NULL == vecio)  return NULL;
-  
-  if (not_image(vecio)) return NULL;
-  
-  ptr = (unsigned char*)vecio->data;
-  
-  /* Get vector dimension. */
-  n = vecio->dimensions[0] * vecio->dimensions[1];
-  
-  /* Operate on the vectors  */
-  for( i = 0; i < n; i++ )
-  {
-    r = ptr[2];
-    g = ptr[1];
-    b = ptr[0];
-    if( g > frac * r && g > frac * b )
-    {
-      ptr[0] = 0;
-      ptr[1] = 0xFF;
-      ptr[2] = 0;
-      count++;
-    }
-    ptr += 3;
-  }    
-  return Py_BuildValue("i", count);
-}
 
 // GLOBALS FOR NOW
 AVCodec *codecH264, *codecMPEG4;
