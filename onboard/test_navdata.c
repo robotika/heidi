@@ -87,6 +87,9 @@ ssize_t full_read(int fd, uint8_t *buf, size_t count)
 
 int main()
 {
+  // First we try to kill the program.elf and its respawner if it is running (done here because initializes first)
+  system("killall -9 program.elf.respawner.sh; killall -9 program.elf");  
+
   uint8_t buf[256];
 
   int fd = init();
