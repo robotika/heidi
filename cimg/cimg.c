@@ -89,9 +89,6 @@ static PyObject *avoidGreen(PyObject *self, PyObject *args)
 	
 	if (not_image(vecio)) return NULL;
 	
-	/* Get vector dimension. */
-	n = vecio->dimensions[0] * vecio->dimensions[1];
-
   if( fromX < toX )
   {
 	  for( x = fromX; x < toX; x++ )
