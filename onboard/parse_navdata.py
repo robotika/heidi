@@ -19,7 +19,6 @@ def checksum( packet ):
     s = 0
     while len(packet) > 0:
         s += struct.unpack("<H", packet[:2])[0]
-        print hex(s)
         packet = packet[2:]
     return s & 0xFFFF
 
@@ -28,7 +27,8 @@ def parseNavdata( data ):
     while len(data) > NAVDATA_PACKET_SIZE:
         packet = data[:NAVDATA_PACKET_SIZE]
         assert packet[0] == chr(NAVDATA_START_BYTE)
-#        print checksum( packet[2:] )
+        chSum = struct.unpack("H", packet[58:60])[0]
+        assert checksum( packet[2:58] ) == chSum, (checksum( packet[2:58] ), chSum)
         header, frameNumber = struct.unpack("HH", packet[:4])
         assert header == NAVDATA_START_BYTE
         ax,ay,az = struct.unpack("HHH", packet[4:10])
