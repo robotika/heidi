@@ -1,3 +1,9 @@
+#!/usr/bin/python
+"""
+  Verbose output of logged navdata*.gz files
+  usage:
+      ./navdata.py <navdata log>
+"""
 import struct
 import sys
 import gzip
@@ -67,6 +73,7 @@ typedef struct _navdata_magneto_t {
 NAVDATA_DEMO_TAG = 0
 NAVDATA_TIME_TAG = 1
 NAVDATA_RAW_MEASURES_TAG = 2
+NAVDATA_PWM_TAG = 9
 NAVDATA_ALTITUDE_TAG = 10
 NAVDATA_TRACKERS_SEND_TAG = 15
 NAVDATA_VISION_DETECT_TAG = 16
@@ -205,6 +212,43 @@ typedef struct _navdata_pressure_raw_t {
 """
   return struct.unpack_from("=ihii", data, offset+4)
 
+def parsePWMTag( data, offset ):
+  """ tag == NAVDATA_PWM_TAG:
+typedef struct _navdata_pwm_t {
+  uint16_t   tag;
+  uint16_t   size;
+
+  uint8_t     motor1;
+  uint8_t     motor2;
+  uint8_t     motor3;
+  uint8_t     motor4;
+  uint8_t     sat_motor1;
+  uint8_t     sat_motor2;
+  uint8_t     sat_motor3;
+  uint8_t     sat_motor4;
+  float32_t   gaz_feed_forward;
+  float32_t   gaz_altitude;
+  float32_t   altitude_integral;
+  float32_t   vz_ref;
+  int32_t     u_pitch;
+  int32_t     u_roll;
+  int32_t     u_yaw;
+  float32_t   yaw_u_I;
+  int32_t     u_pitch_planif;
+  int32_t     u_roll_planif;
+  int32_t     u_yaw_planif;
+  float32_t   u_gaz_planif;
+  uint16_t    current_motor1;
+  uint16_t    current_motor2;
+  uint16_t    current_motor3;
+  uint16_t    current_motor4;
+  //WARNING: new navdata (FC 26/07/2011)
+  float32_t   altitude_prop;
+  float32_t   altitude_der;
+}_ATTRIBUTE_PACKED_ navdata_pwm_t; 
+"""
+  return struct.unpack_from("=BBBBBBBBffffiiifiiifHHHHff", data, offset+4)
+
 def parseNavData( packet ):
   offset = 0
   header =  struct.unpack_from("IIII", packet, offset)
@@ -270,6 +314,8 @@ def parseNavData( packet ):
         print "TAG", time, countTypes, x[0], y[0], height[0], width[0], dist[0]/100.0, oriAngle[0], cameraSource[1]
       else:
         print "TAG", time, countTypes
+    if tag == NAVDATA_PWM_TAG:
+      print "PWM", parsePWMTag( "ABCD" + "".join(values), 0 )
   if time and ctrl != 2:
     print "ALT\t%f\t%d\t%d" % (time, ctrl, alt)
   return offset
