@@ -11,9 +11,11 @@ if ARDRONE2_ROOT not in sys.path:
 
 from ardrone2 import ARDrone2, ManualControlException
 
-def hoverAboveRoundel( drone, timeout=10.0 ):
+def hoverAboveRoundel( drone, timeout=60.0 ):
     startTime = drone.time
-    maxSpeed = 0.3
+    maxSpeed = 0.1
+    maxSpeedUpDown = 0.3
+    detectedCount = 0
     while drone.time - startTime < timeout:
         sx, sy, sz, sa = 0.0, 0.0, 0.0, 0.0
         if drone.visionTag:
@@ -23,7 +25,21 @@ def hoverAboveRoundel( drone, timeout=10.0 ):
             x, y = drone.visionTag[0][:2]
             sx = maxSpeed * (500-y)/500.0
             sy = maxSpeed * (500-x)/500.0
-            print sx
+            detectedCount = min(100, detectedCount + 1)
+        else:
+            detectedCount = max(0, detectedCount - 1)
+
+        sz = 0.0
+        if drone.altitudeData != None:
+            altVision = drone.altitudeData[0]/1000.0
+            altSonar = drone.altitudeData[3]/1000.0
+            if detectedCount == 0:
+                # try to move up
+                if max(altSonar, altVision) < 2.0:
+                    sz = maxSpeedUpDown
+            elif detectedCount == 100:
+                if min(altSonar, altVision) > 1.0:
+                    sz = -maxSpeedUpDown
         drone.moveXYZA( sx, sy, sz, sa )
     drone.hover(0.1) # stop motion
 
