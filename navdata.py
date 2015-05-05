@@ -311,9 +311,9 @@ def parseNavData( packet ):
     if tag == NAVDATA_VISION_DETECT_TAG:
       (countTypes, x, y, height, width, dist, oriAngle, cameraSource) = parseVisionDetectTag( "ABCD" + "".join(values), 0 )
       if countTypes[0] > 0:
-        print "TAG", time, countTypes, x[0], y[0], height[0], width[0], dist[0]/100.0, oriAngle[0], cameraSource[1]
+        print "TAG %.3f" % time, countTypes, x[0], y[0], height[0], width[0], dist[0]/100.0, oriAngle[0], cameraSource[1]
       else:
-        print "TAG", time, countTypes
+        print "TAG %.3f" % time, countTypes
     if tag == NAVDATA_PWM_TAG:
       print "PWM", parsePWMTag( "ABCD" + "".join(values), 0 )
   if time and ctrl != 2:
