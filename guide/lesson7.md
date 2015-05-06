@@ -36,7 +36,5 @@ i.e. (500,500). Things which we have to consider is the distance in centimeters
 speed drone.vx, drone.vy and the roundel in the center.
 
 Example of "work in progres" video:
-<center>
-<iframe width="640" height="360" src="https://www.youtube.com/embed/bGds3axS6xQ?feature=player_detailpage" frameborder="0" allowfullscreen></iframe>
-</center>
+https://www.youtube.com/watch?&v=bGds3axS6xQ
 
