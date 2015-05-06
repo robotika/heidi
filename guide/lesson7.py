@@ -4,6 +4,7 @@
 import sys
 import os
 import inspect
+import math
 
 ARDRONE2_ROOT = os.path.realpath(os.path.abspath(os.path.join(os.path.split(inspect.getfile( inspect.currentframe() ))[0],"..")))
 if ARDRONE2_ROOT not in sys.path:
@@ -15,6 +16,7 @@ def hoverAboveRoundel( drone, timeout=60.0 ):
     startTime = drone.time
     maxSpeed = 0.1
     maxSpeedUpDown = 0.3
+    frac = 0.1
     detectedCount = 0
     while drone.time - startTime < timeout:
         sx, sy, sz, sa = 0.0, 0.0, 0.0, 0.0
@@ -23,9 +25,12 @@ def hoverAboveRoundel( drone, timeout=60.0 ):
             # with (0; 0) being the top-left corner, and (1000; 1000) the right-bottom corner regardless
             # the picture resolution or the source camera
             x, y = drone.visionTag[0][:2]
-            sx = maxSpeed * (500-y)/500.0
-            sy = maxSpeed * (500-x)/500.0
+            dist = drone.visionTag[0][4]/100.
+            sx = maxSpeed * min(1.0, max(-1.0, (500-y)/500.0 - frac*drone.vx))
+            sy = maxSpeed * min(1.0, max(-1.0, (500-x)/500.0 - frac*drone.vy))
             detectedCount = min(100, detectedCount + 1)
+#            print x, y, dist, "%.3f %.3f" % (drone.angleLR, drone.angleFB), drone.coord
+#            print x, y, drone.vx, drone.vy
         else:
             detectedCount = max(0, detectedCount - 1)
 
