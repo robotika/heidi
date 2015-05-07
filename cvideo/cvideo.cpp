@@ -4,6 +4,7 @@
 extern "C" {
 #include <libavcodec/avcodec.h>
 #include <libswscale/swscale.h>
+#include <libavutil/mem.h>
 }
 
 int  not_image(PyArrayObject *vec)  {
@@ -122,7 +123,7 @@ static PyMethodDef cvideoMethods[] = {
   {NULL, NULL}     /* Sentinel - marks the end of this structure */
 };
 
-void initcvideo()
+extern "C" void initcvideo()
 {
   (void) Py_InitModule("cvideo", cvideoMethods);
   import_array();  // Must be present for NumPy.  Called first after above line.
