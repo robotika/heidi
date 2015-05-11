@@ -12,12 +12,28 @@ if ARDRONE2_ROOT not in sys.path:
 
 from ardrone2 import ARDrone2, ManualControlException
 
+def getXYZAGoalCmd( drone, goal, maxSpeed=0.2 ):
+    frac = 0.2
+    dxWorld = goal[0] - drone.coord[0]
+    dyWorld = goal[1] - drone.coord[1]
+    c = math.cos(drone.heading)
+    s = math.sin(drone.heading)
+    dx = c*dxWorld + s*dyWorld   # inverse rotation
+    dy = -s*dxWorld + c*dyWorld
+    sx = max( -maxSpeed, min( maxSpeed, frac*(dx - drone.vx) ))
+    sy = max( -maxSpeed, min( maxSpeed, frac*(dy - drone.vy) ))
+    return sx, sy, 0.0, 0.0
+    
+
+
 def hoverAboveRoundel( drone, timeout=60.0 ):
     startTime = drone.time
     maxSpeed = 0.1
     maxSpeedUpDown = 0.3
     frac = 0.1
+    scaleX, scaleY = 0.38, 0.38 # camera FOW at 1m above the ground
     detectedCount = 0
+    goal = (0.0, 0.0) #None
     while drone.time - startTime < timeout:
         sx, sy, sz, sa = 0.0, 0.0, 0.0, 0.0
         if drone.visionTag:
@@ -26,13 +42,19 @@ def hoverAboveRoundel( drone, timeout=60.0 ):
             # the picture resolution or the source camera
             x, y = drone.visionTag[0][:2]
             dist = drone.visionTag[0][4]/100.
-            sx = maxSpeed * min(1.0, max(-1.0, (500-y)/500.0 - frac*drone.vx))
-            sy = maxSpeed * min(1.0, max(-1.0, (500-x)/500.0 - frac*drone.vy))
             detectedCount = min(100, detectedCount + 1)
-#            print x, y, dist, "%.3f %.3f" % (drone.angleLR, drone.angleFB), drone.coord
-#            print x, y, drone.vx, drone.vy
+            # TODO verify signs and scale
+            dx = dist*(scaleY*(500-y)/500.0 + drone.angleFB)
+            dy = dist*(scaleX*(500-x)/500.0) # - drone.angleLR)
+            c = math.cos(drone.heading)
+            s = math.sin(drone.heading)
+            goal = (drone.coord[0] + c*dx - s*dy, 
+                    drone.coord[1] + s*dx + c*dy )
         else:
             detectedCount = max(0, detectedCount - 1)
+
+        if goal:
+            sx,sy,sz,sa = getXYZAGoalCmd( drone, goal )
 
         sz = 0.0
         if drone.altitudeData != None:
@@ -48,7 +70,6 @@ def hoverAboveRoundel( drone, timeout=60.0 ):
         drone.moveXYZA( sx, sy, sz, sa )
     drone.hover(0.1) # stop motion
 
-
 def testLesson7( drone ):
     try:
         drone.startVideo( record=True, highResolution=False )
@@ -62,7 +83,6 @@ def testLesson7( drone ):
     drone.land()
     drone.stopVideo()
     print "Battery", drone.battery
-
 
 
 if __name__ == "__main__":
