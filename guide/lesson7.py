@@ -10,9 +10,9 @@ ARDRONE2_ROOT = os.path.realpath(os.path.abspath(os.path.join(os.path.split(insp
 if ARDRONE2_ROOT not in sys.path:
     sys.path.insert(0, ARDRONE2_ROOT) # access to drone source without installation
 
-from ardrone2 import ARDrone2, ManualControlException
+from ardrone2 import ARDrone2, ManualControlException, normalizeAnglePIPI
 
-def getXYZAGoalCmd( drone, goal, maxSpeed=0.2 ):
+def getXYZAGoalCmd( drone, goal, goalHeading=None, maxSpeed=0.2 ):
     frac = 0.2
     dxWorld = goal[0] - drone.coord[0]
     dyWorld = goal[1] - drone.coord[1]
@@ -22,7 +22,10 @@ def getXYZAGoalCmd( drone, goal, maxSpeed=0.2 ):
     dy = -s*dxWorld + c*dyWorld
     sx = max( -maxSpeed, min( maxSpeed, frac*(dx - drone.vx) ))
     sy = max( -maxSpeed, min( maxSpeed, frac*(dy - drone.vy) ))
-    return sx, sy, 0.0, 0.0
+    sa = 0.0
+    if goalHeading:
+        sa = max( -maxSpeed, min( maxSpeed, frac*(goalHeading - drone.heading) ))
+    return sx, sy, 0.0, sa
     
 
 
@@ -34,6 +37,7 @@ def hoverAboveRoundel( drone, timeout=60.0 ):
     scaleX, scaleY = 0.38, 0.38 # camera FOW at 1m above the ground
     detectedCount = 0
     goal = (0.0, 0.0) #None
+    goalHeading = None
     while drone.time - startTime < timeout:
         sx, sy, sz, sa = 0.0, 0.0, 0.0, 0.0
         if drone.visionTag:
@@ -42,6 +46,7 @@ def hoverAboveRoundel( drone, timeout=60.0 ):
             # the picture resolution or the source camera
             x, y = drone.visionTag[0][:2]
             dist = drone.visionTag[0][4]/100.
+            angle = math.radians(drone.visionTag[0][5] - 270) # we use circle for the body and line for the tail -> 270deg offset
             detectedCount = min(100, detectedCount + 1)
             # TODO verify signs and scale
             dx = dist*(scaleY*(500-y)/500.0 + drone.angleFB)
@@ -50,11 +55,12 @@ def hoverAboveRoundel( drone, timeout=60.0 ):
             s = math.sin(drone.heading)
             goal = (drone.coord[0] + c*dx - s*dy, 
                     drone.coord[1] + s*dx + c*dy )
+            goalHeading = normalizeAnglePIPI( drone.heading + angle ) # TODO check sign
         else:
             detectedCount = max(0, detectedCount - 1)
 
         if goal:
-            sx,sy,sz,sa = getXYZAGoalCmd( drone, goal )
+            sx,sy,sz,sa = getXYZAGoalCmd( drone, goal, goalHeading=goalHeading )
 
         sz = 0.0
         if drone.altitudeData != None:
