@@ -24,7 +24,7 @@ def getXYZAGoalCmd( drone, goal, goalHeading=None, maxSpeed=0.2 ):
     sy = max( -maxSpeed, min( maxSpeed, frac*(dy - drone.vy) ))
     sa = 0.0
     if goalHeading:
-        sa = max( -maxSpeed, min( maxSpeed, frac*(goalHeading - drone.heading) ))
+        sa = max( -maxSpeed, min( maxSpeed, frac*(normalizeAnglePIPI(goalHeading - drone.heading)) ))
     return sx, sy, 0.0, sa
     
 
