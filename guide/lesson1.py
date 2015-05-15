@@ -2,7 +2,12 @@
   Lesson 1 - before you takeoff ...
 """
 import sys
-sys.path.append('..') # access to drone source without installation
+import os
+import inspect
+ARDRONE2_ROOT = os.path.realpath(os.path.abspath(os.path.join(os.path.split(inspect.getfile( inspect.currentframe() ))[0],"..")))
+if ARDRONE2_ROOT not in sys.path:
+    sys.path.insert(0, ARDRONE2_ROOT) # access to drone source without installation
+
 from ardrone2 import ARDrone2
 
 drone = ARDrone2()
