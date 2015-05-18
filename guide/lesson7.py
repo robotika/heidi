@@ -12,8 +12,8 @@ if ARDRONE2_ROOT not in sys.path:
 
 from ardrone2 import ARDrone2, ManualControlException, normalizeAnglePIPI
 
-def getXYZAGoalCmd( drone, goal, goalHeading=None, maxSpeed=0.2 ):
-    frac = 0.2
+def getXYZAGoalCmd( drone, goal, goalHeading=None, maxSpeed=0.3 ):
+    frac = 0.3
     dxWorld = goal[0] - drone.coord[0]
     dyWorld = goal[1] - drone.coord[1]
     c = math.cos(drone.heading)
@@ -29,7 +29,7 @@ def getXYZAGoalCmd( drone, goal, goalHeading=None, maxSpeed=0.2 ):
     
 
 
-def hoverAboveRoundel( drone, timeout=60.0 ):
+def hoverAboveRoundel( drone, timeout=6000.0 ):
     startTime = drone.time
     maxSpeed = 0.1
     maxSpeedUpDown = 0.3
@@ -78,8 +78,10 @@ def hoverAboveRoundel( drone, timeout=60.0 ):
 
 def testLesson7( drone ):
     try:
-        drone.startVideo( record=True, highResolution=False )
-        drone.setVideoChannel( front=False )
+#        drone.startVideo( record=True, highResolution=False )
+#        drone.setVideoChannel( front=False )
+        drone.startVideo( record=True, highResolution=True )
+        drone.setVideoChannel( front=True )
         drone.takeoff()
         hoverAboveRoundel( drone )
     except ManualControlException, e:
