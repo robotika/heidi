@@ -12,6 +12,8 @@ if ARDRONE2_ROOT not in sys.path:
 
 from ardrone2 import ARDrone2, ManualControlException, normalizeAnglePIPI
 
+MAX_ALTITUDE = 3.0
+
 def getXYZAGoalCmd( drone, goal, goalHeading=None, maxSpeed=0.3 ):
     frac = 0.3
     dxWorld = goal[0] - drone.coord[0]
@@ -56,6 +58,7 @@ def hoverAboveRoundel( drone, timeout=6000.0 ):
             goal = (drone.coord[0] + c*dx - s*dy, 
                     drone.coord[1] + s*dx + c*dy )
             goalHeading = normalizeAnglePIPI( drone.heading + angle ) # TODO check sign
+#            print drone.visionTag, "%.2f %.2f %.1f %.1f" % (dx, dy, math.degrees(drone.angleFB), math.degrees(drone.angleLR))
         else:
             detectedCount = max(0, detectedCount - 1)
 
@@ -66,22 +69,34 @@ def hoverAboveRoundel( drone, timeout=6000.0 ):
         if drone.altitudeData != None:
             altVision = drone.altitudeData[0]/1000.0
             altSonar = drone.altitudeData[3]/1000.0
+            if drone.altitudeData[3] == 0:
+                # no sonar echo
+                minAlt = altVision
+            else:
+                minAlt = min(altSonar, altVision)
+
+            if minAlt > MAX_ALTITUDE:
+                # too high to reliably detect anything
+                sz = -maxSpeedUpDown
+
+#            print altSonar, altVision,
             if detectedCount == 0:
                 # try to move up
                 if max(altSonar, altVision) < 2.0:
                     sz = maxSpeedUpDown
             elif detectedCount == 100:
-                if min(altSonar, altVision) > 1.0:
+                if minAlt > 1.0:
                     sz = -maxSpeedUpDown
+#        print "\t%.2f %.2f %.2f %.2f" % (sx, sy, sz, sa)
         drone.moveXYZA( sx, sy, sz, sa )
     drone.hover(0.1) # stop motion
 
 def testLesson7( drone ):
     try:
-#        drone.startVideo( record=True, highResolution=False )
-#        drone.setVideoChannel( front=False )
-        drone.startVideo( record=True, highResolution=True )
-        drone.setVideoChannel( front=True )
+        drone.startVideo( record=True, highResolution=False )
+        drone.setVideoChannel( front=False )
+#        drone.startVideo( record=True, highResolution=True )
+#        drone.setVideoChannel( front=True )
         drone.takeoff()
         hoverAboveRoundel( drone )
     except ManualControlException, e:

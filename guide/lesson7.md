@@ -38,3 +38,12 @@ speed drone.vx, drone.vy and the roundel in the center.
 Example of "work in progres" video:
 https://www.youtube.com/watch?&v=bGds3axS6xQ
 
+= Issues =
+
+* Sonar altitude readings sometimes fails (returns 0) and in that case only
+vision from bottom camera gives some hints about current distance to the
+ground.
+
+* During takeoff the drone can reach even several meters (depends on weather
+conditions) so extra MAX_ALTITUDE was added.
+
