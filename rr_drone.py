@@ -30,8 +30,8 @@ MAX_ALLOWED_VIDEO_DELAY = 2.0 # in seconds, then it will wait (desiredSpeed = 0.
 
 MIN_ROAD_AREA = 18000 # filter out small areas
 
-ROAD_WIDTH_MIN = 2.5
-ROAD_WIDTH_MAX = 6.0
+ROAD_WIDTH_MIN = 1.0 # RR-Pisek 2.5
+ROAD_WIDTH_MAX = 5.0 # RR-Pisek 6.0
 ROAD_WIDTH_VARIANCE = 2.0
 
 ROAD_WIDTH = 2.6 # garden, 4.35 # expected width in Pisek (was 3.0)
@@ -230,8 +230,10 @@ def chooseBestWidth( rects, coord, height, heading, angleFB, angleLR, debugImg=N
           p2d = project2plane( p, coord, height, heading, angleFB, angleLR )
           if p2d:
             obst.append( p2d )
+            print "COORD", p2d
         if len( obst ) == 4:
           widthArr = roadWidthArr( obst )
+          print "(%.1f %.1f %.1f %.1f)" % widthArr, 
           widthMin,widthMax = min(widthArr), max(widthArr)
           if widthMin >= ROAD_WIDTH_MIN and widthMax <= ROAD_WIDTH_MAX and widthMax-widthMin <= ROAD_WIDTH_VARIANCE:
             w = (widthArr[0]+widthArr[1])/2.0
