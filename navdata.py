@@ -80,6 +80,7 @@ NAVDATA_VISION_DETECT_TAG = 16
 NAVDATA_IPHONE_ANGLES_TAG = 18
 NAVDATA_PRESSURE_RAW_TAG = 21
 NAVDATA_MAGNETO_TAG = 22
+NAVDATA_GPS_TAG = 27
 NAVDATA_CKS_TAG = 0xFFFF
 
 #    drone_state['navdata_bootstrap']    = _[1] >> 11 & 1 # Navdata bootstrap : (0) options sent in all or demo mode, (1) no navdata options sent */ 
@@ -249,6 +250,62 @@ typedef struct _navdata_pwm_t {
 """
   return struct.unpack_from("=BBBBBBBBffffiiifiiifHHHHff", data, offset+4)
 
+def parseGPSTag( data, offset ):
+  # info taken from 
+  # https://github.com/paparazzi/paparazzi/blob/55e3d9d79119f81ed0b11a59487280becf13cf40/sw/airborne/boards/ardrone/at_com.h#L157
+  """
+//Navdata gps packet
+typedef double float64_t;               //TODO: Fix this nicely, but this is only used here
+typedef float float32_t;               //TODO: Fix this nicely, but this is only used here
+typedef struct _navdata_gps_t {
+  uint16_t      tag;                    /*!< Navdata block ('option') identifier */
+  uint16_t      size;                   /*!< set this to the size of this structure */
+  float64_t     lat;                    /*!< Latitude */
+  float64_t     lon;                    /*!< Longitude */
+  float64_t     elevation;              /*!< Elevation */
+  float64_t     hdop;                   /*!< hdop */
+  int32_t       data_available;         /*!< When there is data available */
+  uint8_t       unk_0[8];
+  float64_t     lat0;                   /*!< Latitude ??? */
+  float64_t     lon0;                   /*!< Longitude ??? */
+  float64_t     lat_fuse;               /*!< Latitude fused */
+  float64_t     lon_fuse;               /*!< Longitude fused */
+  uint32_t      gps_state;              /*!< State of the GPS, still need to figure out */
+  uint8_t       unk_1[40];
+  float64_t     vdop;                   /*!< vdop */
+  float64_t     pdop;                   /*!< pdop */
+  float32_t     speed;                  /*!< speed */
+  uint32_t      last_frame_timestamp;   /*!< Timestamp from the last frame */
+  float32_t     degree;                 /*!< Degree */
+  float32_t     degree_mag;             /*!< Degree of the magnetic */
+  uint8_t       unk_2[16];
+  struct{
+    uint8_t     sat;
+    uint8_t     cn0;
+  }channels[12];
+  int32_t       gps_plugged;            /*!< When the gps is plugged */
+  uint8_t       unk_3[108];
+  float64_t     gps_time;               /*!< The gps time of week */
+  uint16_t      week;                   /*!< The gps week */
+  uint8_t       gps_fix;                /*!< The gps fix */
+  uint8_t       num_sattelites;         /*!< Number of sattelites */
+  uint8_t       unk_4[24];
+  float64_t     ned_vel_c0;             /*!< NED velocity */
+  float64_t     ned_vel_c1;             /*!< NED velocity */
+  float64_t     ned_vel_c2;             /*!< NED velocity */
+  float64_t     pos_accur_c0;           /*!< Position accuracy */
+  float64_t     pos_accur_c1;           /*!< Position accuracy */
+  float64_t     pos_accur_c2;           /*!< Position accuracy */
+  float32_t     speed_acur;             /*!< Speed accuracy */
+  float32_t     time_acur;              /*!< Time accuracy */
+  uint8_t       unk_5[72];
+  float32_t     temprature;
+  float32_t     pressure;
+} __attribute__ ((packed)) navdata_gps_t;
+"""
+  return struct.unpack_from("=dd", data, offset+4)  # minimal (lat, lon)
+
+
 def parseNavData( packet ):
   offset = 0
   header =  struct.unpack_from("IIII", packet, offset)
@@ -316,6 +373,9 @@ def parseNavData( packet ):
         print "TAG %.3f" % time, countTypes
     if tag == NAVDATA_PWM_TAG:
       print "PWM", parsePWMTag( "ABCD" + "".join(values), 0 )
+
+    if tag == NAVDATA_GPS_TAG:
+      print "GPS", parseGPSTag( "ABCD" + "".join(values), 0 )
   if time and ctrl != 2:
     print "ALT\t%f\t%d\t%d" % (time, ctrl, alt)
   return offset

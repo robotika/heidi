@@ -26,7 +26,7 @@ else:
 import viewlog
 from line import Line
 
-from navdata import parseTimeTag, parseDemoTag, parseVisionDetectTag, parseRawMeasuresTag, parseAltitudeTag, parseMagnetoTag, parsePressureRawTag
+from navdata import parseTimeTag, parseDemoTag, parseVisionDetectTag, parseRawMeasuresTag, parseAltitudeTag, parseMagnetoTag, parsePressureRawTag, parseGPSTag
 
 from multiprocessing import Process, Queue
 from video import logVideoStream
@@ -54,6 +54,7 @@ NAVDATA_VISION_DETECT_TAG = 16
 NAVDATA_IPHONE_ANGLES_TAG = 18
 NAVDATA_PRESSURE_RAW_TAG = 21
 NAVDATA_MAGNETO_TAG = 22
+NAVDATA_GPS_TAG = 27
 NAVDATA_CKS_TAG = 0xFFFF
 
 
@@ -253,6 +254,7 @@ class ARDrone2:
     self.altitudeData = None
     self.compass = None # single heading
     self.magneto = None # whole array
+    self.gps = None  # whole raw data (for now)
     if not skipConfigure:
       self.configure()
     for i in xrange(20):
@@ -488,6 +490,9 @@ class ARDrone2:
 
         if tag == NAVDATA_PRESSURE_RAW_TAG:
           self.pressure = parsePressureRawTag( data, offset )
+
+        if tag == NAVDATA_GPS_TAG:
+          self.gps = parseGPSTag( data, offset )
 
         offset += size
 
