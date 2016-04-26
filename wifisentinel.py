@@ -20,7 +20,7 @@ def myWiFiIP():
   else:
     p = subprocess.Popen( "ipconfig", stdout=subprocess.PIPE )
     for line in p.stdout.readlines():
-      if "IPv4 Address" in line:
+      if "IPv4 Address" in line and "192.168.56.1" not in line:
         ret = line.strip().split()[-1]
   return ret
 
